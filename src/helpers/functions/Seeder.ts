@@ -5,7 +5,7 @@ import CryptoHelper from "./CryptoHelper";
 import DatabaseHandler from '../../repositories/DatabaseHandler';
 import UserRepository from '../../repositories/UserRepository';
 
-const { authenticator } = require('otplib')
+// const { authenticator } = require('otplib')
 const bcrypt = require('bcrypt');
 const cliProgress = require('cli-progress');
 const fs = require('fs');
@@ -51,7 +51,7 @@ class Seeder {
         const userIds = []
 
         try {
-            for (let i = 0; i < amount; i++) {
+            for (let i = 0; i < amount; i += 1) {
                 const firstName = faker.person.firstName();
                 const lastName = faker.person.lastName();
                 const username = faker.internet.userName({firstName, lastName});
@@ -64,6 +64,7 @@ class Seeder {
             return userIds;
         } catch (e) {
             console.log(e)
+            return;
         }
     }
 

@@ -1,5 +1,5 @@
 import AgentRepository from '../repositories/AgentRepository';
-import logger from '../helpers/functions/logger';
+// import logger from '../helpers/functions/logger';
 import CryptoHelper from '../helpers/functions/CryptoHelper';
 
 class AgentService {

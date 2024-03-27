@@ -26,7 +26,10 @@ const mapToDto = (data: any, type: Dtos): object => {
             }
             return new AgentDto(data);
         }
+        default: {
+            return {};
+        }
     }
 }
 
-export {mapToDto};
+export default mapToDto;

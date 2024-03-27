@@ -5,7 +5,7 @@ import Dtos from '../data/enums/DtoEnum';
 import IController from '../interfaces/IController';
 import {OperationException, ExceptionEnum} from '../helpers/exceptions/OperationExceptions';
 import AgentService from '../services/AgentService';
-import { mapToDto } from '../helpers/functions/DtoMapper';
+import mapToDto from '../helpers/functions/DtoMapper';
 import logger from '../helpers/functions/logger';
 
 class AgentController implements IController {

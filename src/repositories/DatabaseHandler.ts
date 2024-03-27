@@ -8,7 +8,7 @@ class DatabaseHandler {
     private prepPool: Pool;
 
     constructor(prepMode: boolean = false) {
-        if (prepMode == false) {
+        if (prepMode === false) {
             this.pool = this.getPool();
         } else {
             this.prepPool = this.getPrepPool();

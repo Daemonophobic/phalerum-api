@@ -21,7 +21,7 @@ export default class AuthRepository extends BaseCrudRepository {
                         connection.release();
                         if (err) reject(err);
                         if (typeof res === "undefined") reject(ExceptionEnum.InvalidResult)
-                        if (res.length == 1) resolve(res[0])
+                        if (res.length === 1) resolve(res[0])
                         else resolve(false);
                     }
                 );
@@ -59,7 +59,7 @@ export default class AuthRepository extends BaseCrudRepository {
                     (err: Error, res: any) => {
                         connection.release();
                         if (err) reject(err);
-                        if (res.length == 0) reject(ExceptionEnum.NotFound);
+                        if (res.length === 0) reject(ExceptionEnum.NotFound);
                         else resolve(res[0].initialization_token);
                     }
                 )

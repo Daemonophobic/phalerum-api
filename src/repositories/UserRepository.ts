@@ -35,8 +35,8 @@ export default class UserRepository extends BaseCrudRepository {
                   (err: Error, res: any) => {
                     connection.release();
                     if (err) reject(err);
-                    res.length == 0 ? reject(ExceptionEnum.NotFound) : '';
-                    res.length == 1 ? resolve(res[0]): reject(ExceptionEnum.InvalidResult);
+                    res.length === 0 ? reject(ExceptionEnum.NotFound) : '';
+                    res.length === 1 ? resolve(res[0]): reject(ExceptionEnum.InvalidResult);
                   }
                 );
             });

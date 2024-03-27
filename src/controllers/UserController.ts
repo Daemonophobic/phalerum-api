@@ -5,7 +5,7 @@ import Dtos from '../data/enums/DtoEnum';
 import IController from '../interfaces/IController';
 import {OperationException, ExceptionEnum} from '../helpers/exceptions/OperationExceptions';
 import UserService from '../services/UserService';
-import { mapToDto } from '../helpers/functions/DtoMapper';
+import mapToDto from '../helpers/functions/DtoMapper';
 import logger from '../helpers/functions/logger';
 
 class UserController implements IController {
@@ -41,7 +41,7 @@ class UserController implements IController {
         try {
             const {id} = request.params
 
-            if (!isNaN(parseInt(id))) {
+            if (!Number.isNaN(parseInt(id))) {
                 const user = await this.userService.getUser(parseInt(id));
                 return response.status(200).json(mapToDto(user, Dtos.UserDto));
             } 
@@ -83,11 +83,11 @@ class UserController implements IController {
         try {
             const {id} = request.params;
 
-            if (id == request.auth.id) {
+            if (id === request.auth.id) {
                 return OperationException.Forbidden(response, {"error": "Invalid operation, cannot delete your own account"})
             }
 
-            if (!isNaN(parseInt(id))) {
+            if (!Number.isNaN(parseInt(id))) {
                 const success = await this.userService.deleteUser(parseInt(id));
                 return response.status(200).json({"success": success});
             } 

@@ -2,7 +2,7 @@ import UserRepository from '../repositories/UserRepository';
 import CryptoHelper from '../helpers/functions/CryptoHelper';
 import MailHelper from '../helpers/functions/MailHelper';
 import logger from '../helpers/functions/logger';
-import { ExceptionEnum } from '../helpers/exceptions/OperationExceptions';
+// import { ExceptionEnum } from '../helpers/exceptions/OperationExceptions';
 
 class UserService {
     private userRepository: UserRepository;

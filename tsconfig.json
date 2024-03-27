@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+      "sourceMap": true,
+      "target": "es6",
+      "rootDir": "./src/",
+      "outDir": "./build/",
+      "alwaysStrict": true,
+      "noImplicitAny": true,
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true,
+      "moduleResolution": "node",
+      "allowSyntheticDefaultImports": true,
+      "module": "commonjs",
+      "resolveJsonModule":true,
+      "baseUrl": "src",
+    },
+    "include": [
+      "src/**/*.ts"
+      ],
+    "exclude": [
+      "node_modules"
+    ]
+  }

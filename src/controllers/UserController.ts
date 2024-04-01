@@ -21,10 +21,10 @@ class UserController implements IController {
 
     private initializeRoutes() {
         this.router.get(`${this.path}`, this.getUsers);
-        this.router.get(`${this.path}/:id`, this.getUser);
+        this.router.get(`${this.path}/:guid`, this.getUser);
         this.router.post(`${this.path}`, this.createUser);
         // this.router.put(`${this.path}`, this.updateUser);
-        this.router.delete(`${this.path}/:id`, this.deleteUser);
+        this.router.delete(`${this.path}/:guid`, this.deleteUser);
     }
 
     private getUsers = async (request: Request, response: Response) => {
@@ -39,13 +39,13 @@ class UserController implements IController {
 
     private getUser = async (request: Request, response: Response) => {
         try {
-            const {id} = request.params
+            const {guid} = request.params
 
-            if (!Number.isNaN(parseInt(id))) {
-                const user = await this.userService.getUser(parseInt(id));
+            if (typeof guid !== 'undefined') {
+                const user = await this.userService.getUser(guid);
                 return response.status(200).json(mapToDto(user, Dtos.UserDto));
             } 
-                return OperationException.InvalidParameters(response, ["id"])
+                return OperationException.InvalidParameters(response, ["guid"])
             
         } catch (e) {
             console.log(e);
@@ -81,17 +81,17 @@ class UserController implements IController {
 
     private deleteUser = async (request: Request, response: Response) => {
         try {
-            const {id} = request.params;
+            const {guid} = request.params;
 
-            if (id === request.auth.id) {
+            if (guid === request.auth.guid) {
                 return OperationException.Forbidden(response, {"error": "Invalid operation, cannot delete your own account"})
             }
 
-            if (!Number.isNaN(parseInt(id))) {
-                const success = await this.userService.deleteUser(parseInt(id));
+            if (typeof guid === 'string') {
+                const success = await this.userService.deleteUser(guid);
                 return response.status(200).json({"success": success});
             } 
-                return OperationException.InvalidParameters(response, ["id"])
+                return OperationException.InvalidParameters(response, ["guid"])
             
         } catch (e) {
             console.log(e);

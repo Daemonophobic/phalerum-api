@@ -4,6 +4,7 @@ import AuthRepository from '../../repositories/AuthRepository';
 import CryptoHelper from "./CryptoHelper";
 import DatabaseHandler from '../../repositories/DatabaseHandler';
 import UserRepository from '../../repositories/UserRepository';
+import logger from './logger';
 
 // const { authenticator } = require('otplib')
 const bcrypt = require('bcrypt');
@@ -24,14 +25,12 @@ class Seeder {
     }
 
     public seed = async () => {
-        const progress = new cliProgress.SingleBar({stopOnComplete: true}, cliProgress.Presets.shades_classic);
-
-        const userAmount = 5;
-
-        progress.start(1 + 2*userAmount, 0);
-
         // Clearing Database
         await this.clearDatabase();
+
+        const progress = new cliProgress.SingleBar({stopOnComplete: true}, cliProgress.Presets.shades_classic);
+        const userAmount = 5;
+        progress.start(1 + 2*userAmount, 0);
         progress.increment();
         
         // Adding Users
@@ -40,6 +39,10 @@ class Seeder {
         // Adding authentication data
         await this.configureAuthentication(userIds, progress);
 
+        setTimeout(() => {
+            logger.info("Completed seeding the database!");
+            process.exit(0);
+        }, 5000)
     }
 
     private clearDatabase = async () => {
@@ -72,7 +75,6 @@ class Seeder {
     private configureAuthentication = async (userIds: number[], progress: any) => {
         userIds.forEach(async (userId: number) => {
             const hash = bcrypt.hashSync(process.env.DEFAULT_PASSWORD, 10);
-            // let OTPSecret = authenticator.generateSecret();
             const OTPSecret = process.env.DEV_OTP_SECRET;
             const enc = this.cryptoHelper.encrypt(OTPSecret);
             const userObj = this.userRepository.getUserById(userId);

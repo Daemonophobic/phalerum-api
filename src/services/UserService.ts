@@ -2,6 +2,7 @@ import UserRepository from '../repositories/UserRepository';
 import CryptoHelper from '../helpers/functions/CryptoHelper';
 import MailHelper from '../helpers/functions/MailHelper';
 import logger from '../helpers/functions/logger';
+import { ExceptionEnum } from '../helpers/exceptions/OperationExceptions';
 // import { ExceptionEnum } from '../helpers/exceptions/OperationExceptions';
 
 class UserService {
@@ -26,13 +27,17 @@ class UserService {
         const data = await this.userRepository.addUser({...user, guid}, initializationToken.prod);
 
         logger.info(`sending mail for ${user.username}`)
-        this.mailHelper.sendMail("Phalerum <phalerum@phalerum.stickybits.red>", `${user.username} <${user.emailAddress}>`, `You have been invited to join Phalerum`,
+        const emailStatus = await this.mailHelper.sendMail(process.env.MAIL_FROM, `${user.firstName} <${user.emailAddress}>`, `You have been invited to join Phalerum`,
         `<h1>Welcome to Phalerum</h1>
          <p>Your administrator has created an account for you. To join, fill in the following data on the website:</p>
          <ul>
             <li>Email: ${user.emailAddress}</l1>
             <li>Initialization Token: ${initializationToken.plain}</li>
          </ul>`);
+
+         if (typeof emailStatus !== null) {
+           throw ExceptionEnum.NotFound;
+         }
 
          return data;
     }

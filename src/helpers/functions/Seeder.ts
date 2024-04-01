@@ -56,8 +56,9 @@ class Seeder {
                 const lastName = faker.person.lastName();
                 const username = faker.internet.userName({firstName, lastName});
                 const email = faker.internet.email({firstName, lastName}).toLowerCase();
+                const guid = this.cryptoHelper.generateGuid();
 
-                const information = await this.userRepository.addUserLegacy({firstName, lastName, username, email});
+                const information = await this.userRepository.addUserLegacy({guid, firstName, lastName, username, email});
                 userIds.push(information.res.insertId)
                 progress.increment()
             }
@@ -74,7 +75,8 @@ class Seeder {
             // let OTPSecret = authenticator.generateSecret();
             const OTPSecret = process.env.DEV_OTP_SECRET;
             const enc = this.cryptoHelper.encrypt(OTPSecret);
-            const user = {id: userId, password: hash, OTPSecret: `{"data":"${enc.data}","iv":"${enc.iv}"}`}
+            const userObj = this.userRepository.getUserById(userId);
+            const user = {guid: (await userObj).guid, password: hash, OTPSecret: `{"data":"${enc.data}","iv":"${enc.iv}"}`}
             await this.authRepository.addUser(user);
             progress.increment();
         })

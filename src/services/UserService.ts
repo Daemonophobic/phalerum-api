@@ -17,12 +17,13 @@ class UserService {
 
     public getAllUsers = async () => this.userRepository.getAllUsers();
 
-    public getUser = async (userId: number) => this.userRepository.getUser(userId);
+    public getUser = async (guid: string) => this.userRepository.getUser(guid);
 
     public addUser = async (user: {firstName: string, lastName: string, username: string, emailAddress: string}) => {
+        const guid = this.cryptoHelper.generateGuid();
         const initializationToken = this.cryptoHelper.generateToken();
 
-        const data = await this.userRepository.addUser(user, initializationToken.prod);
+        const data = await this.userRepository.addUser({...user, guid}, initializationToken.prod);
 
         logger.info(`sending mail for ${user.username}`)
         this.mailHelper.sendMail("Phalerum <phalerum@phalerum.stickybits.red>", `${user.username} <${user.emailAddress}>`, `You have been invited to join Phalerum`,
@@ -36,7 +37,7 @@ class UserService {
          return data;
     }
 
-    public deleteUser = async (userId: number) => this.userRepository.deleteUser(userId);
+    public deleteUser = async (guid: string) => this.userRepository.deleteUser(guid);
 }
 
 export default UserService;

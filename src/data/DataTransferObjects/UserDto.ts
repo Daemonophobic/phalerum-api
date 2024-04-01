@@ -1,5 +1,6 @@
 export default class UserDto {
     id: number;
+    guid: string;
     username: string;
     emailAddress: string;
     firstName: string;
@@ -14,6 +15,7 @@ export default class UserDto {
 
     constructor(data: any) {
         this.id = data.id;
+        this.guid = data.guid;
         this.firstName = data.firstName;
         this.lastName = data.lastName;
         this.username = data.username;

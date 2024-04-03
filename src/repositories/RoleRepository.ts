@@ -33,7 +33,7 @@ export default class RoleRepository extends BaseCrudRepository {
                 if (err) reject(err);
 
                 connection.query(
-                    `INSERT INTO ${this.tableNames[0]} (name) VALUES (?)`,
+                    `INSERT INTO ${this.tableNames[0]}(name) VALUES (?)`,
                     [role.name],
                     (err: Error, res: any, fields: any) => {
                         connection.release;

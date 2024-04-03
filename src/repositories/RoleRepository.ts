@@ -19,7 +19,6 @@ export default class RoleRepository extends BaseCrudRepository {
                         connection.release();
                         if (err) reject(err);
                         else {
-                            console.log(res);
                             resolve(res);
                         };
                     }
@@ -29,5 +28,20 @@ export default class RoleRepository extends BaseCrudRepository {
         });
     }
 
+    async CreateRole(name: string): Promise<{role: Partial<RoleDto>, res: any}>| undefined {
+        return new Promise((resolve, reject) => {
+            this.db.getPool().getConnection((err, connection) => {
+                if(err) reject(err);
 
+                connection.query(`INSERT INTO ${this.tableNames[0]} ('names') VALUES (?)`, [name], (err: Error, res: any) => {
+                    if(err) {
+                        connection.release();
+                        reject(err);
+                    }
+                }
+                );
+            }
+        )
+            })
+    }
 }

@@ -5,6 +5,7 @@ import CryptoHelper from "./CryptoHelper";
 import DatabaseHandler from '../../repositories/DatabaseHandler';
 import UserRepository from '../../repositories/UserRepository';
 import logger from './logger';
+import RoleRepository from 'repositories/RoleRepository';
 
 // const { authenticator } = require('otplib')
 const bcrypt = require('bcrypt');
@@ -17,6 +18,7 @@ class Seeder {
     private authRepository = new AuthRepository();
     private userRepository = new UserRepository();
     private cryptoHelper = new CryptoHelper();
+    private roleRepository = new RoleRepository();
 
     private db = new DatabaseHandler(true);
 
@@ -82,6 +84,13 @@ class Seeder {
             await this.authRepository.addUser(user);
             progress.increment();
         })
+    }
+
+    private addRoles = async () => {
+        await this.roleRepository.CreateRole("admin");
+        await this.roleRepository.CreateRole("moderator");
+        await this.roleRepository.CreateRole("user");
+        await this.roleRepository.CreateRole("guest");
     }
 }
 

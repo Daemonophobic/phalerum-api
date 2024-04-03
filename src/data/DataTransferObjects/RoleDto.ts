@@ -1,4 +1,5 @@
-export default class PermissionDto {
+import PermissionDto  from "./PermissionDto";
+export default class RoleDto {
     id: number;
     name: string;
     premissions: PermissionDto[];

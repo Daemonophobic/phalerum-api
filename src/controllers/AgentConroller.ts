@@ -87,8 +87,9 @@ class AgentController implements IController {
                 }
 
                 if (Object.values(OS).includes(os)) {
-                    this.agentService.addAgent(false, os, AddedBy.Agent, request.auth.guid);
-                    return response.status(200).end();
+                    const agent = await this.agentService.addAgent(false, os, AddedBy.Agent, request.auth.guid);
+                    logger.info(`Agent added by agent ${request.auth.guid}`);
+                    return response.status(200).json(mapToDto(agent, Dtos.AgentDto));
                 } else {
                     return OperationException.InvalidParameters(response, ["os"])
                 }

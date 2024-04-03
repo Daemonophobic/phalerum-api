@@ -81,7 +81,7 @@ class AgentController implements IController {
     private addAgent = async (request: Request, response: Response) => {
         try {
             const {agentName, master, os} = request.body;
-            if (request.auth.master && typeof agentName === 'undefined' && typeof master === 'undefined') {
+            if (request.auth.master) {
                 if (typeof os === 'undefined') {
                     return OperationException.InvalidParameters(response, ["os"])
                 }

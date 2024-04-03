@@ -1,6 +1,6 @@
-enum OsEnum {
+enum OS {
     Windows = 'Windows',
     Linux = 'Linux',
 }
 
-export default OsEnum;
+export default OS;

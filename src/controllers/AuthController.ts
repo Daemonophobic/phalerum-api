@@ -35,7 +35,7 @@ class AuthController implements IController {
             const result = await this.authService.authenticateUser({emailAddress: email, password}, OTP);
 
             if (result.error) {
-                setTimeout(() => OperationException.Unauthenticated(response, {error: "Invalid OTP, credentials, or user does not exist"}), 80)
+                setTimeout(() => OperationException.Unauthenticated(response, {error: "Invalid OTP, credentials, or user does not exist"}), 80);
             } else {
                 logger.info(`User ${email} authenticated`);
 

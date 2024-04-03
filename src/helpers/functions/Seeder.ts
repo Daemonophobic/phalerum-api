@@ -74,7 +74,7 @@ class Seeder {
 
     private configureAuthentication = async (userIds: number[], progress: any) => {
         userIds.forEach(async (userId: number) => {
-            const hash = bcrypt.hashSync(process.env.DEFAULT_PASSWORD, 10);
+            const hash = bcrypt.hashSync(process.env.DEV_SEED_PASSWORD, 10);
             const OTPSecret = process.env.DEV_OTP_SECRET;
             const enc = this.cryptoHelper.encrypt(OTPSecret);
             const userObj = this.userRepository.getUserById(userId);

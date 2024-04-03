@@ -2,7 +2,6 @@ import RoleDto from "data/DataTransferObjects/RoleDto";
 import PermissionDto from "data/DataTransferObjects/PermissionDto";
 import BaseCrudRepository from "./base/BaseCrudRepository";
 import { ExceptionEnum } from "../helpers/exceptions/OperationExceptions";
-import { promises } from "fs";
 
 export default class RoleRepository extends BaseCrudRepository {
     constructor() {
@@ -28,20 +27,20 @@ export default class RoleRepository extends BaseCrudRepository {
         });
     }
 
-    async CreateRole(name: string): Promise<{role: Partial<RoleDto>, res: any}>| undefined {
+    async CreateRole(role: Partial<RoleDto>): Promise<Partial<RoleDto>>|undefined {
         return new Promise((resolve, reject) => {
             this.db.getPool().getConnection((err, connection) => {
-                if(err) reject(err);
+                if (err) reject(err);
 
-                connection.query(`INSERT INTO ${this.tableNames[0]} ('names') VALUES (?)`, [name], (err: Error, res: any) => {
-                    if(err) {
-                        connection.release();
-                        reject(err);
-                    }
-                }
-                );
-            }
-        )
-            })
+                connection.query(
+                    `INSERT INTO ${this.tableNames[0]} (name) VALUES (?)`,
+                    [role.name],
+                    (err: Error, res: any, fields: any) => {
+                        connection.release;
+                        if (err) reject(err);
+                        resolve(role);
+                    });
+            });
+        })
     }
 }

@@ -5,7 +5,7 @@ import CryptoHelper from "./CryptoHelper";
 import DatabaseHandler from '../../repositories/DatabaseHandler';
 import UserRepository from '../../repositories/UserRepository';
 import logger from './logger';
-import RoleRepository from 'repositories/RoleRepository';
+import RoleRepository from '../../repositories/RoleRepository';
 
 // const { authenticator } = require('otplib')
 const bcrypt = require('bcrypt');
@@ -89,10 +89,10 @@ class Seeder {
     }
 
     private addRoles = async () => {
-        await this.roleRepository.CreateRole("admin");
-        await this.roleRepository.CreateRole("moderator");
-        await this.roleRepository.CreateRole("user");
-        await this.roleRepository.CreateRole("guest");
+        await this.roleRepository.CreateRole({name: "admin"});
+        await this.roleRepository.CreateRole({name: "moderator"});
+        await this.roleRepository.CreateRole({name: "user"});
+        await this.roleRepository.CreateRole({name: "guest"});
     }
 }
 

@@ -7,6 +7,8 @@ import {OperationException, ExceptionEnum} from '../helpers/exceptions/Operation
 import AgentService from '../services/AgentService';
 import mapToDto from '../helpers/functions/DtoMapper';
 import logger from '../helpers/functions/logger';
+import OS from '../data/enums/OsEnum';
+import AddedBy from '../data/enums/AddedByEnum';
 
 class AgentController implements IController {
     public path = '/agents';
@@ -23,7 +25,9 @@ class AgentController implements IController {
         this.router.get(`${this.path}`, this.getAgents);
         this.router.get(`${this.path}/test`, this.sendCommand);
         this.router.post(`${this.path}/test`, this.receiveCommand);
-        this.router.get(`${this.path}/:id`, this.getAgent);
+        this.router.get(`${this.path}/:guid`, this.getAgent);
+        this.router.post(`${this.path}`, this.addAgent);
+        this.router.delete(`${this.path}/:guid`, this.deleteAgent);
     }
 
     private getAgents = async (request: Request, response: Response) => {
@@ -37,13 +41,13 @@ class AgentController implements IController {
 
     private getAgent = async (request: Request, response: Response) => {
         try {
-            const {id} = request.params
+            const {guid} = request.params
 
-            if (!Number.isNaN(parseInt(id))) {
-                const agent = await this.agentService.getAgent(parseInt(id));
+            if (typeof guid !== 'undefined') {
+                const agent = await this.agentService.getAgent(guid);
                 return response.status(200).json(mapToDto(agent, Dtos.AgentDto));
             } 
-                return OperationException.InvalidParameters(response, ["id"])
+                return OperationException.InvalidParameters(response, ["guid"])
             
         } catch (e) {
             switch(e) {
@@ -61,7 +65,7 @@ class AgentController implements IController {
     }
 
     private sendCommand = async (request: Request, response: Response) => {
-        response.send("ls").end();
+        response.send("ls -la").end();
     }
 
     private receiveCommand = async (request: Request, response: Response) => {
@@ -72,6 +76,52 @@ class AgentController implements IController {
             response.status(200).end();
         }
         response.status(400).end();
+    }
+
+    private addAgent = async (request: Request, response: Response) => {
+        try {
+            const {agentName, master, os} = request.body;
+            if (request.auth.master) {
+                if (typeof os === 'undefined') {
+                    return OperationException.InvalidParameters(response, ["os"])
+                }
+
+                if (Object.values(OS).includes(os)) {
+                    const agent = await this.agentService.addAgent(false, os, AddedBy.Agent, request.auth.guid);
+                    logger.info(`Agent added by master ${request.auth.guid}`);
+                    return response.status(200).json(mapToDto(agent, Dtos.AgentDto));
+                } else {
+                    return OperationException.InvalidParameters(response, ["os"])
+                }
+            }
+
+            if (typeof master !== 'boolean' || !Object.values(OS).includes(os)) {
+                return OperationException.MissingParameters(response, ["agentName", "master", "os"]);
+            }
+
+            const agent = await this.agentService.addAgent(master, os, AddedBy.User, request.auth.guid, agentName);
+            logger.info(`Agent added by ${request.auth.username}`);
+            return response.status(200).json(mapToDto(agent, Dtos.AgentDto));
+        } catch (e) {
+            console.log(e);
+            return OperationException.ServerError(response);
+        }
+    }
+
+    private deleteAgent = async (request: Request, response: Response) => {
+        try {
+            const {guid} = request.params;
+
+            if (typeof guid === 'string') {
+                const success = await this.agentService.deleteAgent(guid);
+                return response.status(200).json({"success": success});
+            } 
+                return OperationException.InvalidParameters(response, ["guid"])
+            
+        } catch (e) {
+            console.log(e);
+            return OperationException.ServerError(response);
+        }
     }
 }
 

@@ -41,6 +41,8 @@ class Seeder {
         // Adding authentication data
         await this.configureAuthentication(userIds, progress);
 
+        await this.addRoles();
+
         setTimeout(() => {
             logger.info("Completed seeding the database!");
             process.exit(0);

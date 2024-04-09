@@ -15,20 +15,21 @@ class AgentService {
 
     public getAllAgents = async () => this.agentRepository.getAllAgents();
 
-    public getAgent = async (guid: string) => this.agentRepository.getAgent(guid);
+    public getAgent = async (_id: string) => this.agentRepository.getAgent(_id);
 
     public addAgent = async (master: boolean, os: OsEnum, addedBy: AddedBy, addedByGuid: string, agentName: string = '') => {
-        const guid = this.cryptoHelper.generateGuid();
         const communicationToken = this.cryptoHelper.generateToken();
 
         if (addedBy === AddedBy.Agent || (addedBy === AddedBy.User && agentName === '')) {
             agentName = this.cryptoHelper.generateString(16);
         }
 
-        return this.agentRepository.addAgent({agentName, guid, addedBy, addedByGuid, master: false, os}, communicationToken.prod)
+        if (addedBy === AddedBy.User) 
+            return await this.agentRepository.addAgent({agentName, addedBy, addedByUser: addedByGuid, master: false, os, communicationToken: communicationToken.prod})
+        return await this.agentRepository.addAgent({agentName, addedBy, addedByAgent: addedByGuid, master: false, os, communicationToken: communicationToken.prod})
     }
 
-    public deleteAgent = async (guid: string) => this.agentRepository.deleteAgent(guid);
+    public deleteAgent = async (_id: string) => this.agentRepository.deleteAgent(_id);
 }
 
 export default AgentService;

@@ -25,9 +25,9 @@ class AgentController implements IController {
         this.router.get(`${this.path}`, this.getAgents);
         this.router.get(`${this.path}/test`, this.sendCommand);
         this.router.post(`${this.path}/test`, this.receiveCommand);
-        this.router.get(`${this.path}/:guid`, this.getAgent);
+        this.router.get(`${this.path}/:_id`, this.getAgent);
         this.router.post(`${this.path}`, this.addAgent);
-        this.router.delete(`${this.path}/:guid`, this.deleteAgent);
+        this.router.delete(`${this.path}/:_id`, this.deleteAgent);
     }
 
     private getAgents = async (request: Request, response: Response) => {
@@ -41,13 +41,13 @@ class AgentController implements IController {
 
     private getAgent = async (request: Request, response: Response) => {
         try {
-            const {guid} = request.params
+            const {_id} = request.params
 
-            if (typeof guid !== 'undefined') {
-                const agent = await this.agentService.getAgent(guid);
+            if (typeof _id !== 'undefined') {
+                const agent = await this.agentService.getAgent(_id);
                 return response.status(200).json(mapToDto(agent, Dtos.AgentDto));
             } 
-                return OperationException.InvalidParameters(response, ["guid"])
+                return OperationException.InvalidParameters(response, ["_id"])
             
         } catch (e) {
             switch(e) {
@@ -87,8 +87,8 @@ class AgentController implements IController {
                 }
 
                 if (Object.values(OS).includes(os)) {
-                    const agent = await this.agentService.addAgent(false, os, AddedBy.Agent, request.auth.guid);
-                    logger.info(`Agent added by master ${request.auth.guid}`);
+                    const agent = await this.agentService.addAgent(false, os, AddedBy.Agent, request.auth._id);
+                    logger.info(`Agent added by master ${request.auth._id}`);
                     return response.status(200).json(mapToDto(agent, Dtos.AgentDto));
                 } else {
                     return OperationException.InvalidParameters(response, ["os"])
@@ -99,7 +99,7 @@ class AgentController implements IController {
                 return OperationException.MissingParameters(response, ["agentName", "master", "os"]);
             }
 
-            const agent = await this.agentService.addAgent(master, os, AddedBy.User, request.auth.guid, agentName);
+            const agent = await this.agentService.addAgent(master, os, AddedBy.User, request.auth._id, agentName);
             logger.info(`Agent added by ${request.auth.username}`);
             return response.status(200).json(mapToDto(agent, Dtos.AgentDto));
         } catch (e) {
@@ -110,13 +110,13 @@ class AgentController implements IController {
 
     private deleteAgent = async (request: Request, response: Response) => {
         try {
-            const {guid} = request.params;
+            const {_id} = request.params;
 
-            if (typeof guid === 'string') {
-                const success = await this.agentService.deleteAgent(guid);
+            if (typeof _id === 'string') {
+                const success = await this.agentService.deleteAgent(_id);
                 return response.status(200).json({"success": success});
             } 
-                return OperationException.InvalidParameters(response, ["guid"])
+                return OperationException.InvalidParameters(response, ["_id"])
             
         } catch (e) {
             console.log(e);

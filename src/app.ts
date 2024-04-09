@@ -1,7 +1,7 @@
 import helmet from "helmet";
+import { connect } from 'mongoose';
 
 import errorMiddleware from "./middlewares/errorMiddleware";
-import DatabaseHandler from './repositories/DatabaseHandler';
 import IController from "./interfaces/IController";
 import logger from "./helpers/functions/logger";
 
@@ -18,11 +18,11 @@ const allowedOrigins = ["https://phalerum.stickybits.red"];
 class App {
     public app;
 
-    public db = new DatabaseHandler();
-
     constructor(controllers: IController[]) {
       this.app = express();
-      this.db.testConnection();
+      this.connectDatabase()
+      .then(() => logger.info("Database Connected"))
+      .catch((err) => logger.error(err));
       this.initializeMiddlewares();
       this.initializeControllers(controllers);
       this.initializeErrorHandling();
@@ -70,6 +70,10 @@ class App {
 
     private initializeErrorHandling() {
       this.app.use(errorMiddleware);
+    }
+
+    private connectDatabase() {
+      return connect(process.env.MONGODB_CONNECTION_STRING);
     }
 }
 

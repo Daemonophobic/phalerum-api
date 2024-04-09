@@ -21,10 +21,9 @@ class UserController implements IController {
 
     private initializeRoutes() {
         this.router.get(`${this.path}`, this.getUsers);
-        this.router.get(`${this.path}/:guid`, this.getUser);
+        this.router.get(`${this.path}/:_id`, this.getUser);
         this.router.post(`${this.path}`, this.createUser);
-        // this.router.put(`${this.path}`, this.updateUser);
-        this.router.delete(`${this.path}/:guid`, this.deleteUser);
+        this.router.put(`${this.path}`, this.updateUser);
     }
 
     private getUsers = async (request: Request, response: Response) => {
@@ -39,13 +38,13 @@ class UserController implements IController {
 
     private getUser = async (request: Request, response: Response) => {
         try {
-            const {guid} = request.params
+            const {_id} = request.params
 
-            if (typeof guid !== 'undefined') {
-                const user = await this.userService.getUser(guid);
+            if (typeof _id !== 'undefined') {
+                const user = await this.userService.getUser(_id);
                 return response.status(200).json(mapToDto(user, Dtos.UserDto));
             } 
-                return OperationException.InvalidParameters(response, ["guid"])
+                return OperationException.InvalidParameters(response, ["_id"])
             
         } catch (e) {
             console.log(e);
@@ -69,30 +68,33 @@ class UserController implements IController {
             if (typeof firstName === 'undefined' || typeof lastName === 'undefined' || typeof username === 'undefined' || typeof email === 'undefined') {
                 return OperationException.MissingParameters(response, ["firstName", "lastName", "username", "email"]);
             }
-            
-            const {user} = await this.userService.addUser({firstName, lastName, username, emailAddress: email});
+
+            const user = await this.userService.addUser({firstName, lastName, username, emailAddress: email});
             logger.info(`Added user ${user.emailAddress}`);
-            return response.status(200).json(mapToDto(user, Dtos.UserDto));
+            return response.status(200).json(user);
         } catch (e) {
-            console.log(e);
-            return OperationException.ServerError(response);
+            switch(e) {
+                case(ExceptionEnum.DuplicateKey): {
+                    return OperationException.DuplicateKey(response, {error: "An account already exists with the provided email address or username"});
+                }
+                default: {
+                    return OperationException.ServerError(response);
+                }
+            }
         }
     }
 
-    private deleteUser = async (request: Request, response: Response) => {
+    private updateUser = async (request: Request, response: Response) => {
         try {
-            const {guid} = request.params;
-
-            if (guid === request.auth.guid) {
-                return OperationException.Forbidden(response, {"error": "Invalid operation, cannot delete your own account"})
+            const {firstName, lastName, username, email} = request.body;
+            if (typeof firstName === 'undefined' && typeof lastName === 'undefined' && typeof username === 'undefined' && typeof email === 'undefined') {
+                return OperationException.MissingParameters(response, ["firstName", "lastName", "username", "email"]);
             }
 
-            if (typeof guid === 'string') {
-                const success = await this.userService.deleteUser(guid);
-                return response.status(200).json({"success": success});
-            } 
-                return OperationException.InvalidParameters(response, ["guid"])
-            
+            const user = await this.userService.updateUser(request.auth.id, {firstName, lastName, username, emailAddress: email});
+            logger.info(`Updated user ${user.emailAddress}`);
+            return response.status(200).json(user);
+
         } catch (e) {
             console.log(e);
             return OperationException.ServerError(response);

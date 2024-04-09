@@ -41,6 +41,15 @@ class OperationException {
         return response.status(400).json(message);
       }
 
+      public static DuplicateKey(
+        response: Response,
+        customMessage?: {error: string}
+      ) {
+        let message = {"error": "The provided details are not unique"};
+        if (customMessage) message = customMessage;
+        return response.status(400).json(message)
+      }
+
       public static InvalidParameters(
         response: Response,
         parameters: Array<string>,
@@ -60,7 +69,8 @@ class OperationException {
 enum ExceptionEnum {
     NotFound = 'NotFound',
     InvalidResult = 'InvalidResult',
-    Forbidden = 'Forbidden'
+    Forbidden = 'Forbidden',
+    DuplicateKey = 'DuplicateKey',
 }
 
 export {ExceptionEnum, OperationException};

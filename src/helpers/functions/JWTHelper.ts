@@ -19,7 +19,7 @@ class JWTHelper {
 
                 const token = jwt.sign({ 
                     exp: Math.floor(Date.now() / 1000) + (60 * 60),
-                    guid: user.guid,
+                    _id: user._id,
                     username: user.username,
                 }, privateKey, { algorithm: 'RS256' });
                 resolve({error: false, session: token});

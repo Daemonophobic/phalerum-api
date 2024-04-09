@@ -12,7 +12,7 @@ class MailHelper {
             }});
     }
 
-    public sendMail = async (from: string, to: string, subject: string, html: string) => {
+    public sendMailAsync = async (from: string, to: string, subject: string, html: string) => {
         try {
             await this.transporter.sendMail({
                 from,

@@ -1,13 +1,15 @@
 import { faker } from '@faker-js/faker';
-import { connect } from 'mongoose';
-
+import mongoose, { Collection, connect, mongo } from 'mongoose';
 import CryptoHelper from "./CryptoHelper";
 import logger from './logger';
 import userModel from '../../models/user';
 import agentModel from '../../models/agent';
 import OS from '../../data/enums/OsEnum';
 import AddedBy from '../../data/enums/AddedByEnum';
-import RoleRepository from 'repositories/RoleRepository';
+import permissionModel from '../../models/permission';
+import roleModel from '../../models/role';
+import PermissionDto from '../../data/DataTransferObjects/PermissionDto';
+//import RoleRepository from '../../repositories/RoleRepository'
 
 const bcrypt = require('bcrypt');
 const fs = require('fs');
@@ -17,12 +19,12 @@ require('dotenv').config();
 class Seeder {
     private user = userModel;
     private agent = agentModel;
+    private permission = permissionModel;
+    private role = roleModel;
     private cryptoHelper = new CryptoHelper();
     private userAmount = 5;
     private agentAmount = 5;
-    private roleRepository = new RoleRepository();
-
-    private db = new DatabaseHandler(true);
+    //private roleRepository = new RoleRepository();
 
     constructor() {
         faker.seed(1898);
@@ -34,24 +36,42 @@ class Seeder {
     public seed = async () => {
         // Clear Collections
         await this.clearCollections();
-
         // Adding Users
         await this.seedUsers(this.userAmount);
 
         // Adding Agents
         await this.seedAgents(this.userAmount, this.agentAmount);
-        // Adding authentication data
-        await this.configureAuthentication(userIds, progress);
 
-        await this.addRoles();
+        // Adding Permissions
+        var permissions = (await this.seedPermissions());
 
+        // Adding Roles
+        await this.seedRoles(permissions);
+
+
+        
         logger.info("Completed seeding the database!");
         process.exit(0);
     }
 
     private clearCollections = async () => {
-        await this.user.deleteMany({});
-        await this.agent.deleteMany({});
+        var collections = await this.user.collection.conn.listCollections();
+        if(collections.find(e => e.name == this.user.collection.name))
+        {
+            await this.user.collection.drop();
+        }
+        if(collections.find(e => e.name == this.agent.collection.name))
+        {
+            await this.agent.collection.drop();
+        }
+        if(collections.find(e => e.name == this.role.collection.name))
+        {
+            await this.role.collection.drop();
+        }
+        if(collections.find(e=> e.name ==this.permission.collection.name))
+        {
+            await this.permission.collection.drop();
+        }
     }
 
     private seedUsers = async (userAmount: number) => {
@@ -84,16 +104,36 @@ class Seeder {
         }
     }
 
+    private seedPermissions = async(): Promise<PermissionDto[]> => 
+    {
+        
+        await this.permission.create({action:"user.read", description: "Can see users"});
+        await this.permission.create({action: "user.write", description: "Can edit, create users"});
+        await this.permission.create({action: "role.read", description: "Can see roles"});
+        await this.permission.create({action: "role.write", description: "Can edit, create roles"});
+        await this.permission.create({action: "job.read", description: "Can see jobs"});
+        await this.permission.create({action: "job.write", description: "Can edit, create jobs"});
+        await this.permission.create({action: "agent.read", description: "Can see agents"});
+        await this.permission.create({action: "agent.write", description: "Can edit, create agents"});
+        await this.permission.create({action: "user.read", description: "Can see users"});
+
+        var result = await this.permission.find();
+        
+        return result;
+    }
+
+    private seedRoles = async(permissions: PermissionDto[]) =>
+    {
+        await this.role.create({name: "Admin", permissions: permissions});
+        await this.role.create({name: "Moderator"});
+        await this.role.create({name: "User"});
+        await this.role.create({name: "Guest"});
+    }
+
     private connectDatabase() {
         return connect(process.env.MONGODB_CONNECTION_STRING);
     }
 
-    private addRoles = async () => {
-        await this.roleRepository.CreateRole("admin");
-        await this.roleRepository.CreateRole("moderator");
-        await this.roleRepository.CreateRole("user");
-        await this.roleRepository.CreateRole("guest");
-    }
 }
 
 const seeder = new Seeder();

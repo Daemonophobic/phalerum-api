@@ -21,11 +21,25 @@ class JWTHelper {
                     exp: Math.floor(Date.now() / 1000) + (60 * 60),
                     _id: user._id,
                     username: user.username,
+                    role: ["Admin"]
                 }, privateKey, { algorithm: 'RS256' });
                 resolve({error: false, session: token});
             });
         });
     }
+
+    public verifyToken = async(req: any, res: any, next: any) => {
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1];
+        const {privateKey} = this;
+        if (token == null) return res.sendStatus(401)
+        jwt.verify(token, privateKey, (err: any, data: any) => {
+            console.log(err)
+            if (err) return res.sendStatus(403)
+            req.role = data.role;
+            next()
+          })
+     };
 }
 
 export default JWTHelper;

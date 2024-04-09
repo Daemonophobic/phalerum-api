@@ -1,47 +1,37 @@
 import RoleDto from "data/DataTransferObjects/RoleDto";
 import PermissionDto from "data/DataTransferObjects/PermissionDto";
-import BaseCrudRepository from "./base/BaseCrudRepository";
 import { ExceptionEnum } from "../helpers/exceptions/OperationExceptions";
 import { promises } from "fs";
+import roleModel from "../models/role";
 
-export default class RoleRepository extends BaseCrudRepository {
-    constructor() {
-        super(["roles", "permissions", "permissions_lookup", "role_lookup"]);
-    }
+export default class RoleRepository {
+    private role = roleModel;
 
-    async GetAllRoles(): Promise<RoleDto[]>| undefined {
-        return new Promise((resolve, reject) => {
-            this.db.getPool().getConnection((err, connection) => {
-                if(err) reject(err);
+    public GetAllRoles = async (): Promise<RoleDto[]> => await this.role.find()
+    .populate("permissions");
 
-                connection.query(
-                    `SELECT id, name FROM ${this.tableNames[0]}`,(err: Error, res: any) => {
-                        connection.release();
-                        if (err) reject(err);
-                        else {
-                            resolve(res);
-                        };
-                    }
-                );
+    public GetRole = async (_id: string): Promise<RoleDto> => await this.role.findOne({_id}).populate("permissions");
+
+    public CreateRole = async (role: Partial<RoleDto>): Promise<RoleDto> => {
+        try{
+            return (await this.role.create(role)).toObject({ useProjection: true });
+        }catch(e){
+            if (e.errorResponse.code === 11000) {
+                throw ExceptionEnum.DuplicateKey;
             }
-            )
-        });
+            throw ExceptionEnum.InvalidResult;
+        }
     }
 
-    async CreateRole(name: string): Promise<{role: Partial<RoleDto>, res: any}>| undefined {
-        return new Promise((resolve, reject) => {
-            this.db.getPool().getConnection((err, connection) => {
-                if(err) reject(err);
-
-                connection.query(`INSERT INTO ${this.tableNames[0]} ('names') VALUES (?)`, [name], (err: Error, res: any) => {
-                    if(err) {
-                        connection.release();
-                        reject(err);
-                    }
-                }
-                );
+    public UpdateRole = async(_id: string, role: Partial<RoleDto>): Promise<RoleDto> => {
+        try{
+            return (await this.role.findOneAndUpdate({_id}, role, {new: true}));
+        } catch(e) {
+            if (e.errorResponse.code === 11000) {
+                throw ExceptionEnum.DuplicateKey;
             }
-        )
-            })
+            throw ExceptionEnum.InvalidResult;
+        }
     }
+    
 }

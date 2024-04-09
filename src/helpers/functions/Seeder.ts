@@ -5,6 +5,7 @@ import CryptoHelper from "./CryptoHelper";
 import logger from './logger';
 import userModel from '../../models/user';
 import agentModel from '../../models/agent';
+import jobModel from '../../models/job';
 import OS from '../../data/enums/OsEnum';
 import AddedBy from '../../data/enums/AddedByEnum';
 
@@ -16,9 +17,11 @@ require('dotenv').config();
 class Seeder {
     private user = userModel;
     private agent = agentModel;
+    private job = jobModel;
     private cryptoHelper = new CryptoHelper();
     private userAmount = 5;
     private agentAmount = 5;
+    private jobAmount = 5;
 
     constructor() {
         faker.seed(1898);
@@ -37,6 +40,9 @@ class Seeder {
         // Adding Agents
         await this.seedAgents(this.userAmount, this.agentAmount);
 
+        // Add Jobs
+        await this.seedJobs(this.userAmount, this.agentAmount, this.jobAmount);
+
         logger.info("Completed seeding the database!");
         process.exit(0);
     }
@@ -44,6 +50,7 @@ class Seeder {
     private clearCollections = async () => {
         await this.user.deleteMany({});
         await this.agent.deleteMany({});
+        await this.job.deleteMany({});
     }
 
     private seedUsers = async (userAmount: number) => {
@@ -73,6 +80,23 @@ class Seeder {
             const addedBy = AddedBy.User;
             const addedByUser = users[faker.number.int({min: 0, max: userAmount - 1})]._id;
             await this.agent.create({agentName, communicationToken, os, addedBy, addedByUser})
+        }
+    }
+
+    private seedJobs = async (userAmount: number, agentAmount: number, jobAmount: number) => {
+        if (userAmount === 0 || agentAmount === 0) {
+            return;
+        }
+
+        const users = await this.user.find();
+        const agents = await this.agent.find();
+
+        for (let i = 0; i < jobAmount; i += 1) {
+            const jobName = faker.person.jobTitle();
+            const jobDescription = faker.person.jobDescriptor();
+            const createdBy = users[faker.number.int({min: 0, max: userAmount - 1})]._id;
+            const agentId = agents[faker.number.int({min: 0, max: agentAmount - 1})]._id;
+            await this.job.create({jobName, jobDescription, createdBy, agentId});
         }
     }
 

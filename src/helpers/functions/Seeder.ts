@@ -1,98 +1,96 @@
 import { faker } from '@faker-js/faker';
+import { connect } from 'mongoose';
 
-import AuthRepository from '../../repositories/AuthRepository';
 import CryptoHelper from "./CryptoHelper";
-import DatabaseHandler from '../../repositories/DatabaseHandler';
-import UserRepository from '../../repositories/UserRepository';
 import logger from './logger';
-import RoleRepository from '../../repositories/RoleRepository';
+import userModel from '../../models/user';
+import agentModel from '../../models/agent';
+import OS from '../../data/enums/OsEnum';
+import AddedBy from '../../data/enums/AddedByEnum';
+import roleModel from '../../models/roles';
 
-// const { authenticator } = require('otplib')
 const bcrypt = require('bcrypt');
-const cliProgress = require('cli-progress');
 const fs = require('fs');
 
 require('dotenv').config();
 
 class Seeder {
-    private authRepository = new AuthRepository();
-    private userRepository = new UserRepository();
+    private user = userModel;
+    private agent = agentModel;
+    private role = roleModel;
     private cryptoHelper = new CryptoHelper();
-    private roleRepository = new RoleRepository();
-
-    private db = new DatabaseHandler(true);
+    private userAmount = 5;
+    private agentAmount = 5;
 
     constructor() {
         faker.seed(1898);
+        this.connectDatabase()
+        .then(() => logger.info("Database Connected"))
+        .catch((err) => logger.error(err));
     }
 
     public seed = async () => {
-        // Clearing Database
-        await this.clearDatabase();
+        // Clear Collections
+        await this.clearCollections();
 
-        const progress = new cliProgress.SingleBar({stopOnComplete: true}, cliProgress.Presets.shades_classic);
-        const userAmount = 5;
-        progress.start(1 + 2*userAmount, 0);
-        progress.increment();
-        
         // Adding Users
-        const userIds: number[] = await this.generateUsers(userAmount, progress);
+        await this.seedUsers(this.userAmount);
 
-        // Adding authentication data
-        await this.configureAuthentication(userIds, progress);
+        // Adding Agents
+        await this.seedAgents(this.userAmount, this.agentAmount);
 
-        await this.addRoles();
+        // Adding Roles
+        await this.seedRoles();
 
-        setTimeout(() => {
-            logger.info("Completed seeding the database!");
-            process.exit(0);
-        }, 5000)
+        logger.info("Completed seeding the database!");
+        process.exit(0);
     }
 
-    private clearDatabase = async () => {
-        const dbScheme = fs.readFileSync('PHALERUM.sql', { encoding: 'utf8', flag: 'r' }).split("\n").join(" ");
-        await this.db.prepDatabase(dbScheme);
+    private clearCollections = async () => {
+        await this.user.deleteMany({});
+        await this.agent.deleteMany({});
+        await this.role.deleteMany({});
     }
 
-    private generateUsers = async (amount: number, progress: any): Promise<number[]> => {
-        const userIds = []
-
-        try {
-            for (let i = 0; i < amount; i += 1) {
-                const firstName = faker.person.firstName();
-                const lastName = faker.person.lastName();
-                const username = faker.internet.userName({firstName, lastName});
-                const email = faker.internet.email({firstName, lastName}).toLowerCase();
-                const guid = this.cryptoHelper.generateGuid();
-
-                const information = await this.userRepository.addUserLegacy({guid, firstName, lastName, username, email});
-                userIds.push(information.res.insertId)
-                progress.increment()
-            }
-            return userIds;
-        } catch (e) {
-            console.log(e)
-            return;
+    private seedUsers = async (userAmount: number) => {
+        for (let i = 0; i < userAmount; i += 1) {
+            const firstName = faker.person.firstName();
+            const lastName = faker.person.lastName();
+            const username = faker.internet.userName({firstName, lastName});
+            const email = faker.internet.email({firstName, lastName}).toLowerCase();
+            const hash = bcrypt.hashSync(process.env.DEV_SEED_PASSWORD, 10);
+            const OTPSecret = process.env.DEV_OTP_SECRET;
+            const encryptedOTPSecret = this.cryptoHelper.encrypt(OTPSecret);
+            await this.user.create({firstName, lastName, username, emailAddress: email, password: hash, OTPSecret: encryptedOTPSecret, locked: false, initializationToken: {}});
         }
     }
 
-    private configureAuthentication = async (userIds: number[], progress: any) => {
-        userIds.forEach(async (userId: number) => {
-            const hash = bcrypt.hashSync(process.env.DEFAULT_PASSWORD, 10);
-            const OTPSecret = process.env.DEV_OTP_SECRET;
-            const enc = this.cryptoHelper.encrypt(OTPSecret);
-            const userObj = this.userRepository.getUserById(userId);
-            const user = {guid: (await userObj).guid, password: hash, OTPSecret: `{"data":"${enc.data}","iv":"${enc.iv}"}`}
-            await this.authRepository.addUser(user);
-            progress.increment();
-        })
+    private seedAgents = async (userAmount: number, agentAmount: number) => {
+        if (userAmount === 0) {
+            return;
+        }
+
+        const users = await this.user.find();
+
+        for (let i = 0; i < agentAmount; i += 1) {
+            const agentName = this.cryptoHelper.generateString(16);
+            const communicationToken = this.cryptoHelper.generateToken().prod;
+            const os = i % 2 === 0 ? OS.Linux : OS.Windows;
+            const addedBy = AddedBy.User;
+            const addedByUser = users[faker.number.int({min: 0, max: userAmount - 1})]._id;
+            await this.agent.create({agentName, communicationToken, os, addedBy, addedByUser})
+        }
     }
 
-    private addRoles = async () => {
-        await this.roleRepository.CreateRole({name: "admin"});
-        await this.roleRepository.CreateRole({name: "moderator"});
-        await this.roleRepository.CreateRole({name: "user"});
-        await this.roleRepository.CreateRole({name: "guest"});
+    private seedRoles = async () => {
+        await this.role.create({name: "Admin"});
+        await this.role.create({name: "Moderator"});
+        await this.role.create({name: "User"});
+        await this.role.create({name: "Guest"});
+    }
+
+    private connectDatabase() {
+        return connect(process.env.MONGODB_CONNECTION_STRING);
     }
 }
 

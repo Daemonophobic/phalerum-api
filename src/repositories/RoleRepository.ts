@@ -1,46 +1,15 @@
 import RoleDto from "data/DataTransferObjects/RoleDto";
 import PermissionDto from "data/DataTransferObjects/PermissionDto";
-import BaseCrudRepository from "./base/BaseCrudRepository";
 import { ExceptionEnum } from "../helpers/exceptions/OperationExceptions";
+import roleModel from "../models/roles";
 
-export default class RoleRepository extends BaseCrudRepository {
-    constructor() {
-        super(["roles", "permissions", "permissions_lookup", "role_lookup"]);
-    }
+export default class RoleRepository {
+    private role = roleModel;
 
-    async GetAllRoles(): Promise<RoleDto[]>| undefined {
-        return new Promise((resolve, reject) => {
-            this.db.getPool().getConnection((err, connection) => {
-                if(err) reject(err);
+    public getAllRoles = async (): Promise<RoleDto[]> =>
+        await this.role.find()
+        .populate('permissions');
 
-                connection.query(
-                    `SELECT id, name FROM ${this.tableNames[0]}`,(err: Error, res: any) => {
-                        connection.release();
-                        if (err) reject(err);
-                        else {
-                            resolve(res);
-                        };
-                    }
-                );
-            }
-            )
-        });
-    }
-
-    async CreateRole(role: Partial<RoleDto>): Promise<Partial<RoleDto>>|undefined {
-        return new Promise((resolve, reject) => {
-            this.db.getPool().getConnection((err, connection) => {
-                if (err) reject(err);
-
-                connection.query(
-                    `INSERT INTO ${this.tableNames[0]}(name) VALUES (?)`,
-                    [role.name],
-                    (err: Error, res: any, fields: any) => {
-                        connection.release;
-                        if (err) reject(err);
-                        resolve(role);
-                    });
-            });
-        })
-    }
+    public createRole = async (role: RoleDto): Promise<RoleDto> =>
+        await this.role.create(role);
 }

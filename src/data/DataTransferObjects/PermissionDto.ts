@@ -1,10 +1,10 @@
 export default class PermissionDto {
-    id: number;
+    name: string;
     action: string;
     description: string;
 
     constructor(data: any) {
-        this.id = data.id;
+        this.name = data.name; 
         this.action = data.action;
         this.description = data.description;
     }

@@ -2,23 +2,23 @@ import AddedBy from "../enums/AddedByEnum";
 import OS from "../enums/OsEnum";
 
 export default class AgentDto {
-    id: number;
-    guid: string;
+    _id: string;
     agentName: string;
     addedBy: AddedBy;
-    addedByGuid: string;
-    lastCheckIn: EpochTimeStamp;
+    addedByUser: any;
+    addedByAgent: any;
+    lastCheckIn: Date;
     ipAddress: string;
     master: boolean;
-    communicationToken: string;
+    communicationToken: any;
     os: OS;
 
     constructor(data: any) {
-        this.id = data.id;
-        this.guid = data.guid;
+        this._id = data._id;
         this.agentName = data.agentName;
         this.addedBy = data.addedBy;
-        this.addedByGuid = data.addedByGuid;
+        this.addedByUser = data.addedByUser;
+        this.addedByAgent = data.addedByAgent;
         this.lastCheckIn = data.lastCheckIn;
         this.ipAddress = data.ipAddress;
         this.master = data.master;

@@ -18,16 +18,21 @@ class UserService {
 
     public getAllUsers = async () => this.userRepository.getAllUsers();
 
-    public getUser = async (guid: string) => this.userRepository.getUser(guid);
+    public getUser = async (_id: string) => {
+        const user = await this.userRepository.getUser(_id);
+        if (user === null) {
+            throw ExceptionEnum.NotFound;
+        }
+        return user;
+    }
 
     public addUser = async (user: {firstName: string, lastName: string, username: string, emailAddress: string}) => {
-        const guid = this.cryptoHelper.generateGuid();
         const initializationToken = this.cryptoHelper.generateToken();
 
-        const data = await this.userRepository.addUser({...user, guid}, initializationToken.prod);
+        const data = await this.userRepository.addUser({...user, initializationToken: initializationToken.prod});
 
         logger.info(`sending mail for ${user.username}`)
-        const emailStatus = await this.mailHelper.sendMail(process.env.MAIL_FROM, `${user.firstName} <${user.emailAddress}>`, `You have been invited to join Phalerum`,
+        this.mailHelper.sendMailAsync(process.env.MAIL_FROM, `${user.firstName} <${user.emailAddress}>`, `You have been invited to join Phalerum`,
         `<h1>Welcome to Phalerum</h1>
          <p>Your administrator has created an account for you. To join, fill in the following data on the website:</p>
          <ul>
@@ -35,14 +40,11 @@ class UserService {
             <li>Initialization Token: ${initializationToken.plain}</li>
          </ul>`);
 
-         if (typeof emailStatus !== null) {
-           throw ExceptionEnum.NotFound;
-         }
-
          return data;
     }
 
-    public deleteUser = async (guid: string) => this.userRepository.deleteUser(guid);
+    public updateUser = async (id: string, user: {firstName: string, lastName: string, username: string, emailAddress: string}) =>
+        await this.userRepository.updateUser(id, user);
 }
 
 export default UserService;

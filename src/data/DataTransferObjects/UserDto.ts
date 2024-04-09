@@ -1,25 +1,25 @@
 export default class UserDto {
-    id: number;
-    guid: string;
+    _id: string;
     username: string;
     emailAddress: string;
     firstName: string;
     lastName: string;
-    createdAt: EpochTimeStamp;
-    lastModified: EpochTimeStamp;
+    createdAt: Date;
+    updatedAt: Date;
     password: string;
     OTPSecret: any;
-    initializationToken: string;
+    initializationToken: any;
     authenticationAttempts: number;
     locked: boolean;
 
     constructor(data: any) {
-        this.id = data.id;
-        this.guid = data.guid;
+        this._id = data.id;
         this.firstName = data.firstName;
         this.lastName = data.lastName;
         this.username = data.username;
+        this.emailAddress = data.emailAddress;
         this.createdAt = data.createdAt;
+        this.updatedAt = data.updatedAt;
         this.password = data.password;
         this.OTPSecret = data.OTPSecret;
         this.initializationToken = data.initializationToken;

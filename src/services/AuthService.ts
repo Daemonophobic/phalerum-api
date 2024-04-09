@@ -64,7 +64,7 @@ class AuthService {
         return !(await this.authRepository.unlockAccount(user.emailAddress)).locked;
     }
 
-    public authenticateUser = async (user: Partial<UserDto>, OTP: number): Promise<{error: boolean, session?: string}> => {
+    public authenticateUser = async (user: Partial<UserDto>, OTP: string): Promise<{error: boolean, session?: string}> => {
         const authInfo = await this.authRepository.getAuthenticationInformation(user.emailAddress);
 
         if (authInfo === null) {
@@ -76,7 +76,7 @@ class AuthService {
         } 
 
         const OTPSecret = this.cryptoHelper.decrypt(authInfo.OTPSecret);
-        const isValid = authenticator.check(OTP.toString(), OTPSecret);
+        const isValid = authenticator.check(OTP, OTPSecret);
         if (!isValid) throw ExceptionEnum.InvalidResult;
 
         const result = await this.JWTHelper.verifyCredentials(authInfo, user.password);

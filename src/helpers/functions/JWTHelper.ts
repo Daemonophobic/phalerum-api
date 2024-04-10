@@ -37,19 +37,18 @@ class JWTHelper {
 
     public verifyPermission = async(request: Request, action: string): Promise<boolean> => {
         const roles = request.auth.roles;
-        let result = new Promise((resolve, _) => {
-            roles.forEach(async (role: string) => {
-                const data = await this.roleService.GetRoleByName(role);
-                if(await data.permissions.some(per => per.action === action)){
-                    resolve(true);
-                }
-            });
-            resolve(false);
-        });
+        let permissions = [];
+        let authorized = false;
 
-        return result.then((result: boolean) => {
-            return typeof result === 'boolean' ? result : false;
-        })
+        for (const role of roles) {
+            const permissionList = (await this.roleService.GetRoleByName(role)).permissions;
+            permissions.push(permissionList);
+            permissionList.map((permission) => {
+                permission.action === action ? authorized = true : '';
+            })
+        }
+
+        return authorized;
     }
 
 }

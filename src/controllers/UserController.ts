@@ -7,6 +7,7 @@ import {OperationException, ExceptionEnum} from '../helpers/exceptions/Operation
 import UserService from '../services/UserService';
 import mapToDto from '../helpers/functions/DtoMapper';
 import logger from '../helpers/functions/logger';
+import JWTHelper from '../helpers/functions/JWTHelper';
 
 class UserController implements IController {
     public path = '/users';
@@ -14,6 +15,7 @@ class UserController implements IController {
     public router = Router();
 
     private userService = new UserService();
+    private jwtHelper = new JWTHelper();
 
     constructor() {
         this.initializeRoutes();
@@ -28,6 +30,10 @@ class UserController implements IController {
 
     private getUsers = async (request: Request, response: Response) => {
         try {
+            if (!(await this.jwtHelper.verifyPermission(request, "user.read"))) {
+                return OperationException.Forbidden(response);
+            }
+
             const users = await this.userService.getAllUsers();
             return response.status(200).json(mapToDto(users, Dtos.UserDto));
         } catch (e) {
@@ -38,6 +44,10 @@ class UserController implements IController {
 
     private getUser = async (request: Request, response: Response) => {
         try {
+            if (!(await this.jwtHelper.verifyPermission(request, "user.read"))) {
+                return OperationException.Forbidden(response);
+            }            
+
             const {_id} = request.params
 
             if (typeof _id !== 'undefined') {
@@ -64,6 +74,10 @@ class UserController implements IController {
 
     private createUser = async (request: Request, response: Response) => {
         try {
+            if (!(await this.jwtHelper.verifyPermission(request, "user.write"))) {
+                return OperationException.Forbidden(response);
+            }
+
             const {firstName, lastName, username, email} = request.body;
             if (typeof firstName === 'undefined' || typeof lastName === 'undefined' || typeof username === 'undefined' || typeof email === 'undefined') {
                 return OperationException.MissingParameters(response, ["firstName", "lastName", "username", "email"]);

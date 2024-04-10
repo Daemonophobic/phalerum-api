@@ -3,6 +3,7 @@ import AgentRepository from '../repositories/AgentRepository';
 import CryptoHelper from '../helpers/functions/CryptoHelper';
 import OsEnum from '../data/enums/OsEnum';
 import AddedBy from '../data/enums/AddedByEnum';
+import { ExceptionEnum } from '../helpers/exceptions/OperationExceptions';
 
 class AgentService {
     private agentRepository: AgentRepository;
@@ -15,8 +16,13 @@ class AgentService {
 
     public getAllAgents = async () => this.agentRepository.getAllAgents();
 
-    public getAgent = async (_id: string) => this.agentRepository.getAgent(_id);
-
+    public getAgent = async (_id: string) => {
+        const agent = await this.agentRepository.getAgent(_id);
+        if (agent === null) {
+            throw ExceptionEnum.NotFound;
+        }
+        return agent;
+    }
     public addAgent = async (master: boolean, os: OsEnum, addedBy: AddedBy, addedByGuid: string, agentName: string = '') => {
         const communicationToken = this.cryptoHelper.generateToken();
 

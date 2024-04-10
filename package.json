@@ -10,7 +10,7 @@
     "start": "node ./build/server.js",
     "dev": "nodemon",
     "seed": "ts-node ./src/helpers/functions/Seeder.ts",
-    "prepare-database": "ts-node ./src/helpers/functions/databasePrep.ts"
+    "prepare-application": "ts-node ./src/helpers/functions/ApplicationPreparer.ts"
   },
   "keywords": [],
   "author": "",

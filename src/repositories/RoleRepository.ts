@@ -12,6 +12,8 @@ export default class RoleRepository {
 
     public GetRole = async (_id: string): Promise<RoleDto> => await this.role.findOne({_id}).populate("permissions");
 
+    public GetRoleByName = async (name: string): Promise<RoleDto> => (await this.role.findOne({name})).populate("permissions");
+
     public CreateRole = async (role: Partial<RoleDto>): Promise<RoleDto> => {
         try{
             return (await this.role.create(role)).toObject({ useProjection: true });

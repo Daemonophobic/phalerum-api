@@ -36,17 +36,17 @@ class Seeder {
     public seed = async () => {
         // Clear Collections
         await this.clearCollections();
-        // Adding Users
-        await this.seedUsers(this.userAmount);
-
-        // Adding Agents
-        await this.seedAgents(this.userAmount, this.agentAmount);
-
         // Adding Permissions
         var permissions = (await this.seedPermissions());
 
         // Adding Roles
         await this.seedRoles(permissions);
+
+        // Adding Users
+        await this.seedUsers(this.userAmount);
+        
+        // Adding Agents
+        await this.seedAgents(this.userAmount, this.agentAmount);
 
 
         
@@ -83,7 +83,8 @@ class Seeder {
             const hash = bcrypt.hashSync(process.env.DEV_SEED_PASSWORD, 10);
             const OTPSecret = process.env.DEV_OTP_SECRET;
             const encryptedOTPSecret = this.cryptoHelper.encrypt(OTPSecret);
-            await this.user.create({firstName, lastName, username, emailAddress: email, password: hash, OTPSecret: encryptedOTPSecret, locked: false, initializationToken: {}});
+            i === 0 ? await this.user.create({firstName, lastName, username, emailAddress: email, password: hash, OTPSecret: encryptedOTPSecret, locked: false, initializationToken: {}, roles: [(await this.role.findOne({name: "Admin"}))]}) :
+            await this.user.create({firstName, lastName, username, emailAddress: email, password: hash, OTPSecret: encryptedOTPSecret, locked: false, initializationToken: {}, roles: [(await this.role.findOne({name: "Guest"}))]})
         }
     }
 
@@ -115,7 +116,6 @@ class Seeder {
         await this.permission.create({action: "job.write", description: "Can edit, create jobs"});
         await this.permission.create({action: "agent.read", description: "Can see agents"});
         await this.permission.create({action: "agent.write", description: "Can edit, create agents"});
-        await this.permission.create({action: "user.read", description: "Can see users"});
 
         var result = await this.permission.find();
         
@@ -123,11 +123,32 @@ class Seeder {
     }
 
     private seedRoles = async(permissions: PermissionDto[]) =>
-    {
+    {   
+        var ModeratorFilter = ["user.read", "job.read", "job.write", "agent.read", "agent.write", "role.read"];
+        var UserFilter = ["user.read", "job.read", "job.write", "agent.read", "role.read"];
+        var guestFilter = ["user.read","job.read", "agent.read", "role.read"];
+
+
+
         await this.role.create({name: "Admin", permissions: permissions});
-        await this.role.create({name: "Moderator"});
-        await this.role.create({name: "User"});
-        await this.role.create({name: "Guest"});
+        await this.role.create({name: "Moderator", permissions: permissions.reduce((permissionsList, permission) => {
+            if (ModeratorFilter.includes(permission.action)) {
+                permissionsList.push(permission)
+            };
+            return permissionsList;
+        }, [])});
+        await this.role.create({name: "User", permissions: permissions.reduce((permissionsList, permission) => {
+            if (UserFilter.includes(permission.action)) {
+                permissionsList.push(permission)
+            };
+            return permissionsList;
+        }, [])});
+        await this.role.create({name: "Guest", permissions: permissions.reduce((permissionsList, permission) => {
+            if (guestFilter.includes(permission.action)) {
+                permissionsList.push(permission)
+            };
+            return permissionsList;
+        }, [])})
     }
 
     private connectDatabase() {

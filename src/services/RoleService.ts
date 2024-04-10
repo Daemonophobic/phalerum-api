@@ -23,6 +23,15 @@ class RoleService {
         return role;
     }
 
+    public GetRoleByName = async (name: string) => {
+        const role = await this.roleRepository.GetRoleByName(name);
+        if(role == null)
+        {
+            throw ExceptionEnum.NotFound;
+        }
+        return role;
+    }
+
 
 }
 

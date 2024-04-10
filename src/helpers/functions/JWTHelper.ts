@@ -1,4 +1,7 @@
+import RoleDto from "../../data/DataTransferObjects/RoleDto";
+import RoleService from "../../services/RoleService";
 import UserDto from "../../data/DataTransferObjects/UserDto";
+import { Request } from 'express-jwt';
 
 const bcrypt = require('bcrypt');
 const fs = require('fs');
@@ -6,6 +9,8 @@ const jwt = require('jsonwebtoken');
 
 class JWTHelper {
     private privateKey;
+
+    private roleService = new RoleService();
 
     constructor() {
         this.privateKey = fs.readFileSync('certificates/key.pem', { encoding: 'utf8', flag: 'r' });
@@ -21,25 +26,32 @@ class JWTHelper {
                     exp: Math.floor(Date.now() / 1000) + (60 * 60),
                     _id: user._id,
                     username: user.username,
-                    role: ["Admin"]
+                    roles: user.roles.map(( role ) => { 
+                        return role.name; 
+                       })
                 }, privateKey, { algorithm: 'RS256' });
                 resolve({error: false, session: token});
             });
         });
     }
 
-    public verifyToken = async(req: any, res: any, next: any) => {
-        const authHeader = req.headers['authorization'];
-        const token = authHeader && authHeader.split(' ')[1];
-        const {privateKey} = this;
-        if (token == null) return res.sendStatus(401)
-        jwt.verify(token, privateKey, (err: any, data: any) => {
-            console.log(err)
-            if (err) return res.sendStatus(403)
-            req.role = data.role;
-            next()
-          })
-     };
+    public verifyPermission = async(request: Request, action: string): Promise<boolean> => {
+        const roles = request.auth.roles;
+        let result = new Promise((resolve, _) => {
+            roles.forEach(async (role: string) => {
+                const data = await this.roleService.GetRoleByName(role);
+                if(await data.permissions.some(per => per.action === action)){
+                    resolve(true);
+                }
+            });
+            resolve(false);
+        });
+
+        return result.then((result: boolean) => {
+            return typeof result === 'boolean' ? result : false;
+        })
+    }
+
 }
 
 export default JWTHelper;

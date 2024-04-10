@@ -77,7 +77,7 @@ class AuthService {
 
         const OTPSecret = this.cryptoHelper.decrypt(authInfo.OTPSecret);
         const isValid = authenticator.check(OTP, OTPSecret);
-        if (!isValid) throw ExceptionEnum.InvalidResult;
+        if (isValid) throw ExceptionEnum.InvalidResult;
 
         const result = await this.JWTHelper.verifyCredentials(authInfo, user.password);
         return result;

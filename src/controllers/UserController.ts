@@ -73,6 +73,7 @@ class UserController implements IController {
             logger.info(`Added user ${user.emailAddress}`);
             return response.status(200).json(user);
         } catch (e) {
+            logger.error(e);
             switch(e) {
                 case(ExceptionEnum.DuplicateKey): {
                     return OperationException.DuplicateKey(response, {error: "An account already exists with the provided email address or username"});

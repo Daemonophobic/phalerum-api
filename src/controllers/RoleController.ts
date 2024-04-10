@@ -6,6 +6,7 @@ import IController from "../interfaces/IController";
 import mapToDto from '../helpers/functions/DtoMapper';
 import Dtos from '../data/enums/DtoEnum';
 import {OperationException, ExceptionEnum} from '../helpers/exceptions/OperationExceptions';
+import JWTHelper from '../helpers/functions/JWTHelper';
 
 
 class RoleController implements IController {
@@ -14,6 +15,7 @@ class RoleController implements IController {
     public router = Router();
 
     private roleService = new RoleService();
+    private jwtHelper = new JWTHelper();
 
     constructor() {
         this.initializeRoutes();
@@ -26,6 +28,10 @@ class RoleController implements IController {
 
     private getRoles = async (request: Request, response: Response) => {
         try{
+            if (!(await this.jwtHelper.verifyPermission(request, "role.read"))) {
+                return OperationException.Forbidden(response);
+            }
+
             const roles = await this.roleService.GetAllRole();
             return response.status(200).json(mapToDto(roles, Dtos.RoleDto));
         }
@@ -39,7 +45,6 @@ class RoleController implements IController {
     private getRole = async (request: Request, response: Response) => {
         try{
             const {_id} = request.params
-            console.log(_id);
 
             if(typeof _id !== 'undefined')
             {

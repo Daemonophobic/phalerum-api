@@ -6,12 +6,12 @@ export default class AgentRepository {
     private agent = agentModel;
 
     public getAllAgents = async (): Promise<AgentDto[]> =>
-        await this.agent.find()
-            .populate("addedByUser")
-            .populate("addedByAgent");
+        await this.agent.find();
 
     public getAgent = async (_id: string): Promise<AgentDto> => 
-        await this.agent.findOne({_id});
+        await this.agent.findOne({_id})
+        .populate("addedByUser")
+        .populate("addedByAgent");
 
     public addAgent = async (agent: Partial<AgentDto>): Promise<AgentDto> =>
         (await this.agent.create(agent)).toObject({ useProjection: true });

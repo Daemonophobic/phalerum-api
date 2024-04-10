@@ -1,30 +1,22 @@
 import { faker } from '@faker-js/faker';
 import { connect } from 'mongoose';
-import CryptoHelper from "./CryptoHelper";
 import logger from './logger';
 import userModel from '../../models/user';
 import agentModel from '../../models/agent';
 import jobModel from '../../models/job';
-import OS from '../../data/enums/OsEnum';
-import AddedBy from '../../data/enums/AddedByEnum';
 import permissionModel from '../../models/permission';
 import roleModel from '../../models/role';
 import PermissionDto from '../../data/DataTransferObjects/PermissionDto';
-
-const bcrypt = require('bcrypt');
+const { exec } = require('child_process');
 
 require('dotenv').config();
 
-class Seeder {
+class ApplicationPreparer {
     private user = userModel;
     private agent = agentModel;
     private job = jobModel;
     private permission = permissionModel;
     private role = roleModel;
-    private cryptoHelper = new CryptoHelper();
-    private userAmount = 5;
-    private agentAmount = 5;
-    private jobAmount = 5;
 
     constructor() {
         faker.seed(1898);
@@ -33,26 +25,19 @@ class Seeder {
         .catch((err) => logger.error(err));
     }
 
-    public seed = async () => {
+    public deploy = async () => {
         // Clear Collections
         await this.clearCollections();
         // Adding Permissions
-        var permissions = (await this.seedPermissions());
+        var permissions = (await this.addPermissions());
 
         // Adding Roles
-        await this.seedRoles(permissions);
+        await this.addRoles(permissions);
 
-        // Adding Users
-        await this.seedUsers(this.userAmount);
-        
-        // Adding Agents
-        await this.seedAgents(this.userAmount, this.agentAmount);
+        // Generate JWT Certificates
+        await this.generateCertificates();
 
-        // Add Jobs
-        await this.seedJobs(this.userAmount, this.agentAmount, this.jobAmount);
-
-
-        logger.info("Completed seeding the database!");
+        logger.info("Completed preparing the application!");
         process.exit(0);
     }
 
@@ -80,55 +65,7 @@ class Seeder {
         }
     }
 
-    private seedUsers = async (userAmount: number) => {
-        for (let i = 0; i < userAmount; i += 1) {
-            const firstName = faker.person.firstName();
-            const lastName = faker.person.lastName();
-            const username = faker.internet.userName({firstName, lastName});
-            const email = faker.internet.email({firstName, lastName}).toLowerCase();
-            const hash = bcrypt.hashSync(process.env.DEV_SEED_PASSWORD, 10);
-            const OTPSecret = process.env.DEV_OTP_SECRET;
-            const encryptedOTPSecret = this.cryptoHelper.encrypt(OTPSecret);
-            i === 0 ? await this.user.create({firstName, lastName, username, emailAddress: email, password: hash, OTPSecret: encryptedOTPSecret, locked: false, initializationToken: {}, roles: [(await this.role.findOne({name: "Admin"}))]}) :
-            await this.user.create({firstName, lastName, username, emailAddress: email, password: hash, OTPSecret: encryptedOTPSecret, locked: false, initializationToken: {}, roles: [(await this.role.findOne({name: "Guest"}))]})
-        }
-    }
-
-    private seedAgents = async (userAmount: number, agentAmount: number) => {
-        if (userAmount === 0) {
-            return;
-        }
-
-        const users = await this.user.find();
-
-        for (let i = 0; i < agentAmount; i += 1) {
-            const agentName = this.cryptoHelper.generateString(16);
-            const communicationToken = this.cryptoHelper.generateToken().prod;
-            const os = i % 2 === 0 ? OS.Linux : OS.Windows;
-            const addedBy = AddedBy.User;
-            const addedByUser = users[faker.number.int({min: 0, max: userAmount - 1})]._id;
-            await this.agent.create({agentName, communicationToken, os, addedBy, addedByUser})
-        }
-    }
-
-    private seedJobs = async (userAmount: number, agentAmount: number, jobAmount: number) => {
-        if (userAmount === 0 || agentAmount === 0) {
-            return;
-        }
-
-        const users = await this.user.find();
-        const agents = await this.agent.find();
-
-        for (let i = 0; i < jobAmount; i += 1) {
-            const jobName = faker.person.jobTitle();
-            const jobDescription = faker.person.jobDescriptor();
-            const createdBy = users[faker.number.int({min: 0, max: userAmount - 1})]._id;
-            const agentId = agents[faker.number.int({min: 0, max: agentAmount - 1})]._id;
-            await this.job.create({jobName, jobDescription, createdBy, agentId});
-        }
-    }
-
-    private seedPermissions = async(): Promise<PermissionDto[]> => 
+    private addPermissions = async(): Promise<PermissionDto[]> => 
     {
         
         await this.permission.create({action:"user.read", description: "Can see users"});
@@ -145,7 +82,7 @@ class Seeder {
         return result;
     }
 
-    private seedRoles = async(permissions: PermissionDto[]) =>
+    private addRoles = async(permissions: PermissionDto[]) =>
     {   
         var ModeratorFilter = ["user.read", "job.read", "job.write", "agent.read", "agent.write", "role.read"];
         var UserFilter = ["user.read", "job.read", "job.write", "agent.read", "role.read"];
@@ -174,11 +111,20 @@ class Seeder {
         }, [])})
     }
 
+    private generateCertificates = async () => {
+        exec('mkdir certificates;openssl genrsa -out certificates/key.pem 4096;\
+        openssl rsa -in certificates/key.pem -outform PEM -pubout -out certificates/public.pem', (err: any, stdout: any, stderr: any) => {
+            if (err) {
+              throw new Error("Failed generate certificates");
+            }
+          });
+    }
+
     private connectDatabase() {
         return connect(process.env.MONGODB_CONNECTION_STRING);
     }
 
 }
 
-const seeder = new Seeder();
-seeder.seed();
+const applicationPreparer = new ApplicationPreparer();
+applicationPreparer.deploy();

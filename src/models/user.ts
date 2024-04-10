@@ -23,7 +23,7 @@ const userSchema = new Schema<UserDto>(
     },
     createdAt: {
       type: Schema.Types.Date,
-      default: Date.now
+      default: Date.now,
     },
     password: {
         type: String,

@@ -1,10 +1,9 @@
 import Dtos from "../../data/enums/DtoEnum";
 import UserDto from "../../data/DataTransferObjects/UserDto";
 import AgentDto from "../../data/DataTransferObjects/AgentDto";
+import JobDto from "../../data/DataTransferObjects/JobDto";
 import RoleDto from "../../data/DataTransferObjects/RoleDto";
 import PermissionDto from "../../data/DataTransferObjects/PermissionDto";
-// import DeviceDto from "../../data/DataTransferObjects/DeviceDto";
-// import AuthDto from "../../data/DataTransferObjects/AuthDto";
 
 const mapToDto = (data: any, type: Dtos): object => {
     switch(type) {
@@ -27,6 +26,16 @@ const mapToDto = (data: any, type: Dtos): object => {
                 return agents;
             }
             return new AgentDto(data);
+        }
+        case (Dtos.JobDto): {
+            if (typeof data.length !== 'undefined') {
+                const jobs: JobDto[] = [];
+                data.forEach((job: object) => {
+                    jobs.push(new JobDto(job));
+                });
+                return jobs;
+            }
+            return new JobDto(data);
         }
         case (Dtos.RoleDto): {
             if (typeof data.length !== 'undefined') {

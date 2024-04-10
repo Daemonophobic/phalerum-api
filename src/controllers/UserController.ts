@@ -92,8 +92,16 @@ class UserController implements IController {
                 return OperationException.MissingParameters(response, ["firstName", "lastName", "username", "email"]);
             }
 
-            const user = await this.userService.updateUser(request.auth.id, {firstName, lastName, username, emailAddress: email});
-            logger.info(`Updated user ${user.emailAddress}`);
+            const user = await this.userService.updateUser(request.auth._id, {firstName, lastName, username, emailAddress: email});
+            logger.info(`Updated user ${request.auth.username}`);
+            if (typeof username !== 'undefined') { 
+                return response.cookie('session', '', {
+                    maxAge: 1,
+                    path: "/api",
+                    httpOnly: true,
+                    secure: true,
+                }).status(200).end();
+            }
             return response.status(200).json(user);
 
         } catch (e) {

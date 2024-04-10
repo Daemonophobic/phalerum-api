@@ -6,7 +6,6 @@ import IController from '../interfaces/IController';
 import {OperationException, ExceptionEnum} from '../helpers/exceptions/OperationExceptions';
 import JobService from '../services/JobService';
 import mapToDto from '../helpers/functions/DtoMapper';
-import logger from '../helpers/functions/logger';
 import OS from '../data/enums/OsEnum';
 import JWTHelper from '../helpers/functions/JWTHelper';
 

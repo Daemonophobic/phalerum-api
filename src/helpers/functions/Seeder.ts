@@ -130,7 +130,6 @@ class Seeder {
 
     private seedPermissions = async(): Promise<PermissionDto[]> => 
     {
-        
         await this.permission.create({action:"user.read", description: "Can see users"});
         await this.permission.create({action: "user.write", description: "Can edit, create users"});
         await this.permission.create({action: "role.read", description: "Can see roles"});
@@ -139,8 +138,10 @@ class Seeder {
         await this.permission.create({action: "job.write", description: "Can edit, create jobs"});
         await this.permission.create({action: "agent.read", description: "Can see agents"});
         await this.permission.create({action: "agent.write", description: "Can edit, create agents"});
+        await this.permission.create({action: "admin.user.read", description: "Can retrieve extended user information"});
+        await this.permission.create({action: "admin.user.write", description: "Can modify extended user information"});
 
-        var result = await this.permission.find();
+        const result = await this.permission.find();
         
         return result;
     }

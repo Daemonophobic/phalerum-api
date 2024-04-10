@@ -85,7 +85,7 @@ class UserController implements IController {
 
             const user = await this.userService.addUser({firstName, lastName, username, emailAddress: email});
             logger.info(`Added user ${user.emailAddress}`);
-            return response.status(200).json(user);
+            return response.status(200).json(mapToDto(user, Dtos.UserDto));
         } catch (e) {
             logger.error(e);
             switch(e) {

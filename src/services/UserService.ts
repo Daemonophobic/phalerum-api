@@ -29,16 +29,20 @@ class UserService {
         return user;
     }
 
-    public addUser = async (user: {firstName: string, lastName: string, username: string, emailAddress: string}) => {
+    public addUser = async (user: {firstName: string, lastName: string, username: string, emailAddress: string}, roleName: string = "Guest", initial: boolean = false) => {
         const initializationToken = this.cryptoHelper.generateToken();
-        const role = await this.roleRepository.GetRoleByName("Guest");
-        console.log(role);
+
+        const role = await this.roleRepository.GetRoleByName(roleName);
+        if (role === null) {
+            throw ExceptionEnum.InvalidResult;
+        }
+        
         const data = await this.userRepository.addUser({...user, initializationToken: initializationToken.prod, roles: [role]});
 
         logger.info(`sending mail for ${user.username}`)
         this.mailHelper.sendMailAsync(process.env.MAIL_FROM, `${user.firstName} <${user.emailAddress}>`, `You have been invited to join Phalerum`,
         `<h1>Welcome to Phalerum</h1>
-         <p>Your administrator has created an account for you. To join, fill in the following data on the website:</p>
+         <p>${initial ? 'An account was created' : 'Your administrator has created an account'} for you. To join, fill in the following data on the website:</p>
          <ul>
             <li>Email: ${user.emailAddress}</l1>
             <li>Initialization Token: ${initializationToken.plain}</li>

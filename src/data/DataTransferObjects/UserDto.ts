@@ -13,7 +13,7 @@ export default class UserDto {
     locked: boolean;
 
     constructor(data: any) {
-        this._id = data.id;
+        this._id = data._id;
         this.firstName = data.firstName;
         this.lastName = data.lastName;
         this.username = data.username;

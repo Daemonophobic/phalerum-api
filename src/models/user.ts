@@ -49,7 +49,13 @@ const userSchema = new Schema<UserDto>(
         type: Boolean,
         default: true,
         select: false,
-    }
+    },
+    roles:[{ 
+      type: Schema.Types.ObjectId, 
+      ref: 'Role',
+      default: [], 
+      select: false,
+  }]
   },
   {
     timestamps: true,

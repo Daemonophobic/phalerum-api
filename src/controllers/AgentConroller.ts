@@ -9,6 +9,7 @@ import mapToDto from '../helpers/functions/DtoMapper';
 import logger from '../helpers/functions/logger';
 import OS from '../data/enums/OsEnum';
 import AddedBy from '../data/enums/AddedByEnum';
+import JWTHelper from '../helpers/functions/JWTHelper';
 
 class AgentController implements IController {
     public path = '/agents';
@@ -16,6 +17,7 @@ class AgentController implements IController {
     public router = Router();
 
     private agentService = new AgentService();
+    private jwtHelper = new JWTHelper();
 
     constructor() {
         this.initializeRoutes();
@@ -32,6 +34,10 @@ class AgentController implements IController {
 
     private getAgents = async (request: Request, response: Response) => {
         try {
+            if (!(await this.jwtHelper.verifyPermission(request, "agent.read"))) {
+                return OperationException.Forbidden(response);
+            }
+
             const agents = await this.agentService.getAllAgents();
             return response.status(200).json(mapToDto(agents, Dtos.AgentDto));
         } catch (e) {
@@ -41,6 +47,10 @@ class AgentController implements IController {
 
     private getAgent = async (request: Request, response: Response) => {
         try {
+            if (!(await this.jwtHelper.verifyPermission(request, "agent.read"))) {
+                return OperationException.Forbidden(response);
+            }
+
             const {_id} = request.params
 
             if (typeof _id !== 'undefined') {
@@ -80,6 +90,11 @@ class AgentController implements IController {
 
     private addAgent = async (request: Request, response: Response) => {
         try {
+            if (!(await this.jwtHelper.verifyPermission(request, "agent.write"))) {
+                return OperationException.Forbidden(response);
+            }
+
+
             const {agentName, master, os} = request.body;
             if (request.auth.master) {
                 if (typeof os === 'undefined') {
@@ -110,6 +125,10 @@ class AgentController implements IController {
 
     private deleteAgent = async (request: Request, response: Response) => {
         try {
+            if (!(await this.jwtHelper.verifyPermission(request, "agent.write"))) {
+                return OperationException.Forbidden(response);
+            }
+
             const {_id} = request.params;
 
             if (typeof _id === 'string') {

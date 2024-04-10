@@ -7,7 +7,6 @@ This codebase contains the implementation of the Phalerum API.
 - [Installation](#installation)
 - [Usage](#usage)
 - [Contributing](#contributing)
-- [License](#license)
 
 ## Installation
 

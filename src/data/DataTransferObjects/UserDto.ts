@@ -1,3 +1,5 @@
+import RoleDto from "./RoleDto";
+
 export default class UserDto {
     _id: string;
     username: string;
@@ -11,6 +13,7 @@ export default class UserDto {
     initializationToken: any;
     authenticationAttempts: number;
     locked: boolean;
+    roles: Array<RoleDto>;
 
     constructor(data: any) {
         this._id = data._id;
@@ -24,6 +27,7 @@ export default class UserDto {
         this.OTPSecret = data.OTPSecret;
         this.initializationToken = data.initializationToken;
         this.authenticationAttempts = data.authenticationAttempts;
-        this.locked = data.enabled;    
+        this.locked = data.enabled; 
+        this.roles = data.roles;
     }
 }

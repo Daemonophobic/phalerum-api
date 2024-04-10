@@ -8,6 +8,7 @@ import JobService from '../services/JobService';
 import mapToDto from '../helpers/functions/DtoMapper';
 import logger from '../helpers/functions/logger';
 import OS from '../data/enums/OsEnum';
+import JWTHelper from '../helpers/functions/JWTHelper';
 
 class JobController implements IController {
     public path = '/jobs';
@@ -15,6 +16,7 @@ class JobController implements IController {
     public router = Router();
 
     private jobService = new JobService();
+    private jwtHelper = new JWTHelper();
 
     constructor() {
         this.initializeRoutes();
@@ -30,6 +32,10 @@ class JobController implements IController {
 
     private getJobs = async (request: Request, response: Response) => {
         try {
+            if (!(await this.jwtHelper.verifyPermission(request, "job.read"))) {
+                return OperationException.Forbidden(response);
+            }
+
             const jobs = await this.jobService.getAllJobs();
             return response.status(200).json(mapToDto(jobs, Dtos.JobDto));
         } catch (e) {
@@ -39,6 +45,10 @@ class JobController implements IController {
 
     private getJob = async (request: Request, response: Response) => {
         try {
+            if (!(await this.jwtHelper.verifyPermission(request, "job.read"))) {
+                return OperationException.Forbidden(response);
+            }
+
             const {_id} = request.params;
 
             if (typeof _id !== 'undefined') {
@@ -64,6 +74,10 @@ class JobController implements IController {
 
     private createJob = async (request: Request, response: Response) => {
         try {
+            if (!(await this.jwtHelper.verifyPermission(request, "job.write"))) {
+                return OperationException.Forbidden(response);
+            }
+
             const {jobName, jobDescription, crossCompatible, os, agentId, masterJob, shellCommand, command} = request.body;
             if (typeof jobName === 'undefined' || jobDescription === 'undefined') {
                 return OperationException.MissingParameters(response, ["jobName", "jobDescription"]);
@@ -83,7 +97,12 @@ class JobController implements IController {
 
     private updateJob = async (request: Request, response: Response) => {
         try {
+            if (!(await this.jwtHelper.verifyPermission(request, "job.write"))) {
+                return OperationException.Forbidden(response);
+            }
+
             const {_id} = request.params;
+
             const {jobName, jobDescription, disabled, crossCompatible, os, agentId, masterJob, shellCommand, command} = request.body;
             if (typeof jobName === 'undefined' && typeof jobDescription === 'undefined' && typeof disabled === 'undefined' &&
                 typeof crossCompatible === 'undefined' && typeof os === 'undefined' && typeof agentId === 'undefined' &&
@@ -102,6 +121,10 @@ class JobController implements IController {
 
     private deleteJob = async (request: Request, response: Response) => {
         try {
+            if (!(await this.jwtHelper.verifyPermission(request, "job.write"))) {
+                return OperationException.Forbidden(response);
+            }
+
             const {_id} = request.params;
 
             if (typeof _id === 'string') {

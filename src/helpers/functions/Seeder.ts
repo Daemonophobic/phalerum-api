@@ -59,9 +59,6 @@ class Seeder {
     }
 
     private clearCollections = async () => {
-        await this.user.deleteMany({});
-        await this.agent.deleteMany({});
-        await this.job.deleteMany({});
         var collections = await this.user.collection.conn.listCollections();
         if(collections.find(e => e.name == this.user.collection.name))
         {
@@ -70,6 +67,10 @@ class Seeder {
         if(collections.find(e => e.name == this.agent.collection.name))
         {
             await this.agent.collection.drop();
+        }
+        if(collections.find(e => e.name == this.job.collection.name))
+        {
+            await this.job.collection.drop();
         }
         if(collections.find(e => e.name == this.role.collection.name))
         {

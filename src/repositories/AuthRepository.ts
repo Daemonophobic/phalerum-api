@@ -10,5 +10,5 @@ export default class AuthRepository {
         .populate('roles');
         
     public unlockAccount = async (emailAddress: string): Promise<UserDto> =>
-        await this.user.findOneAndUpdate({emailAddress}, {locked: false}, { new: true });
+        await this.user.findOneAndUpdate({emailAddress}, {locked: false, initializationToken: null}, { new: true });
 }

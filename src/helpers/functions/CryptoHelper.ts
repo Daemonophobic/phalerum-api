@@ -9,17 +9,17 @@ class CryptoHelper {
         this.algo = algo
     }
 
-    public encrypt(data: string): {data: string, iv: string} {
+    public encrypt(data: string): {cipher: string, iv: string} {
         const iv = crypto.randomBytes(16);
         const cipher = crypto.createCipheriv(this.algo, Buffer.from(process.env.ENC_KEY, 'hex'), iv);
         let encrypted = cipher.update(data);
         encrypted = Buffer.concat([encrypted, cipher.final()]);
-        return {data: encrypted.toString('hex'), iv: iv.toString('hex')};
+        return {cipher: encrypted.toString('hex'), iv: iv.toString('hex')};
     }
 
-    public decrypt(data: {data: string, iv: string}): string {
+    public decrypt(data: {cipher: string, iv: string}): string {
         const iv = Buffer.from(data.iv, 'hex');
-        const enc = Buffer.from(data.data, 'hex');
+        const enc = Buffer.from(data.cipher, 'hex');
         const decipher = crypto.createDecipheriv(this.algo, Buffer.from(process.env.ENC_KEY, 'hex'), iv);
         let decrypted = decipher.update(enc);
         decrypted = Buffer.concat([decrypted, decipher.final()]);
@@ -30,9 +30,21 @@ class CryptoHelper {
         return crypto.randomUUID();
     }
 
-    public generateToken(): {prod: {data: string, iv: string}, plain: string} {
+    public generateToken(): {prod: {cipher: string, iv: string}, plain: string} {
         const initializationToken = randomBytes(32).toString('hex');
         return {prod: this.encrypt(initializationToken), plain: initializationToken};
+    }
+
+    public generateString(length: number): string {
+        let result = '';
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const charactersLength = characters.length;
+        let counter = 0;
+        while (counter < length) {
+          result += characters.charAt(Math.floor(Math.random() * charactersLength));
+          counter += 1;
+        }
+        return result;
     }
 }
 

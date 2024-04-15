@@ -1,3 +1,5 @@
+import logger from "./logger";
+
 const nodemailer = require('nodemailer');
 
 class MailHelper {
@@ -10,13 +12,20 @@ class MailHelper {
             }});
     }
 
-    public sendMail = async (from: string, to: string, subject: string, html: string) => {
-        await this.transporter.sendMail({
-            from,
-            to,
-            subject,
-            html
-          });
+    public sendMailAsync = async (from: string, to: string, subject: string, html: string) => {
+        try {
+            await this.transporter.sendMail({
+                from,
+                to,
+                subject,
+                html
+            });
+            return null;
+        }
+        catch (err) {
+            logger.error(`Failed sending email to ${to} with error: ${err}`);
+            return err;
+        }
     }
 }
 

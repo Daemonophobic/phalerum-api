@@ -1,8 +1,9 @@
 import Dtos from "../../data/enums/DtoEnum";
 import UserDto from "../../data/DataTransferObjects/UserDto";
 import AgentDto from "../../data/DataTransferObjects/AgentDto";
-// import DeviceDto from "../../data/DataTransferObjects/DeviceDto";
-// import AuthDto from "../../data/DataTransferObjects/AuthDto";
+import JobDto from "../../data/DataTransferObjects/JobDto";
+import RoleDto from "../../data/DataTransferObjects/RoleDto";
+import PermissionDto from "../../data/DataTransferObjects/PermissionDto";
 
 const mapToDto = (data: any, type: Dtos): object => {
     switch(type) {
@@ -25,6 +26,54 @@ const mapToDto = (data: any, type: Dtos): object => {
                 return agents;
             }
             return new AgentDto(data);
+        }
+        case (Dtos.JobDto): {
+            if (typeof data.length !== 'undefined') {
+                const jobs: JobDto[] = [];
+                data.forEach((job: object) => {
+                    jobs.push(new JobDto(job));
+                });
+                return jobs;
+            }
+            return new JobDto(data);
+        }
+        case (Dtos.RoleDto): {
+            if (typeof data.length !== 'undefined') {
+                
+                const roles: RoleDto[] = [];
+                data.forEach((role: any) => {
+                    const permissions: PermissionDto[] =[];
+                    if(typeof role.permissions.length !== 'undefined')
+                    {
+                        role.permissions.forEach((permission: object) => {
+                            permissions.push(new PermissionDto(permission));
+                        })
+                    }
+                    var result = new RoleDto(role);
+                    result.permissions = permissions;
+                    roles.push(result);
+                });
+                return roles;
+            }
+            const permissions: PermissionDto[] =[];
+            if(typeof data.permissions.length !== 'undefined'){
+                data.permissions.forEach((permission: object) => {
+                    permissions.push(new PermissionDto(permission));
+                });
+            }
+            var result = new RoleDto(data);
+            result.permissions = permissions;
+            return result;
+        }
+        case (Dtos.PermissionDto): {
+            if (typeof data.length !== 'undefined') {
+                const permissions: PermissionDto[] = [];
+                data.forEach((permission: object) => {
+                    permissions.push(new PermissionDto(permission));
+                });
+                return permissions;
+            }
+            return new PermissionDto(data);
         }
         default: {
             return {};

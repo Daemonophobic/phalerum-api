@@ -7,7 +7,6 @@ This codebase contains the implementation of the Phalerum API.
 - [Installation](#installation)
 - [Usage](#usage)
 - [Contributing](#contributing)
-- [License](#license)
 
 ## Installation
 
@@ -45,8 +44,4 @@ Contributions to this project are welcome. To contribute, please follow these gu
 2. Create a new branch for your feature or bug fix.
 3. Make your changes and commit them.
 4. Push your changes to your forked repository.
-5. Submit a pull request.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
+5. Submit a pull request. 

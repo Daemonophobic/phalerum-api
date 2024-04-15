@@ -7,6 +7,9 @@ import {OperationException, ExceptionEnum} from '../helpers/exceptions/Operation
 import AgentService from '../services/AgentService';
 import mapToDto from '../helpers/functions/DtoMapper';
 import logger from '../helpers/functions/logger';
+import OS from '../data/enums/OsEnum';
+import AddedBy from '../data/enums/AddedByEnum';
+import JWTHelper from '../helpers/functions/JWTHelper';
 
 class AgentController implements IController {
     public path = '/agents';
@@ -14,6 +17,7 @@ class AgentController implements IController {
     public router = Router();
 
     private agentService = new AgentService();
+    private jwtHelper = new JWTHelper();
 
     constructor() {
         this.initializeRoutes();
@@ -23,11 +27,17 @@ class AgentController implements IController {
         this.router.get(`${this.path}`, this.getAgents);
         this.router.get(`${this.path}/test`, this.sendCommand);
         this.router.post(`${this.path}/test`, this.receiveCommand);
-        this.router.get(`${this.path}/:id`, this.getAgent);
+        this.router.get(`${this.path}/:_id`, this.getAgent);
+        this.router.post(`${this.path}`, this.addAgent);
+        this.router.delete(`${this.path}/:_id`, this.deleteAgent);
     }
 
     private getAgents = async (request: Request, response: Response) => {
         try {
+            if (!(await this.jwtHelper.verifyPermission(request, "agent.read"))) {
+                return OperationException.Forbidden(response);
+            }
+
             const agents = await this.agentService.getAllAgents();
             return response.status(200).json(mapToDto(agents, Dtos.AgentDto));
         } catch (e) {
@@ -37,13 +47,17 @@ class AgentController implements IController {
 
     private getAgent = async (request: Request, response: Response) => {
         try {
-            const {id} = request.params
+            if (!(await this.jwtHelper.verifyPermission(request, "agent.read"))) {
+                return OperationException.Forbidden(response);
+            }
 
-            if (!Number.isNaN(parseInt(id))) {
-                const agent = await this.agentService.getAgent(parseInt(id));
+            const {_id} = request.params
+
+            if (typeof _id !== 'undefined') {
+                const agent = await this.agentService.getAgent(_id);
                 return response.status(200).json(mapToDto(agent, Dtos.AgentDto));
             } 
-                return OperationException.InvalidParameters(response, ["id"])
+                return OperationException.InvalidParameters(response, ["_id"])
             
         } catch (e) {
             switch(e) {
@@ -61,7 +75,7 @@ class AgentController implements IController {
     }
 
     private sendCommand = async (request: Request, response: Response) => {
-        response.send("ls").end();
+        response.send("ls -la").end();
     }
 
     private receiveCommand = async (request: Request, response: Response) => {
@@ -72,6 +86,61 @@ class AgentController implements IController {
             response.status(200).end();
         }
         response.status(400).end();
+    }
+
+    private addAgent = async (request: Request, response: Response) => {
+        try {
+            if (!(await this.jwtHelper.verifyPermission(request, "agent.write"))) {
+                return OperationException.Forbidden(response);
+            }
+
+
+            const {agentName, master, os} = request.body;
+            if (request.auth.master) {
+                if (typeof os === 'undefined') {
+                    return OperationException.InvalidParameters(response, ["os"])
+                }
+
+                if (Object.values(OS).includes(os)) {
+                    const agent = await this.agentService.addAgent(false, os, AddedBy.Agent, request.auth._id);
+                    logger.info(`Agent added by master ${request.auth._id}`);
+                    return response.status(200).json(mapToDto(agent, Dtos.AgentDto));
+                } else {
+                    return OperationException.InvalidParameters(response, ["os"])
+                }
+            }
+
+            if (typeof master !== 'boolean' || !Object.values(OS).includes(os)) {
+                return OperationException.MissingParameters(response, ["agentName", "master", "os"]);
+            }
+
+            const agent = await this.agentService.addAgent(master, os, AddedBy.User, request.auth._id, agentName);
+            logger.info(`Agent added by ${request.auth.username}`);
+            return response.status(200).json(mapToDto(agent, Dtos.AgentDto));
+        } catch (e) {
+            console.log(e);
+            return OperationException.ServerError(response);
+        }
+    }
+
+    private deleteAgent = async (request: Request, response: Response) => {
+        try {
+            if (!(await this.jwtHelper.verifyPermission(request, "agent.write"))) {
+                return OperationException.Forbidden(response);
+            }
+
+            const {_id} = request.params;
+
+            if (typeof _id === 'string') {
+                const success = await this.agentService.deleteAgent(_id);
+                return response.status(200).json({"success": success});
+            } 
+                return OperationException.InvalidParameters(response, ["_id"])
+            
+        } catch (e) {
+            console.log(e);
+            return OperationException.ServerError(response);
+        }
     }
 }
 

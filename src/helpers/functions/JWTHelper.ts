@@ -1,4 +1,7 @@
+import RoleDto from "../../data/DataTransferObjects/RoleDto";
+import RoleService from "../../services/RoleService";
 import UserDto from "../../data/DataTransferObjects/UserDto";
+import { Request } from 'express-jwt';
 
 const bcrypt = require('bcrypt');
 const fs = require('fs');
@@ -6,6 +9,8 @@ const jwt = require('jsonwebtoken');
 
 class JWTHelper {
     private privateKey;
+
+    private roleService = new RoleService();
 
     constructor() {
         this.privateKey = fs.readFileSync('certificates/key.pem', { encoding: 'utf8', flag: 'r' });
@@ -19,13 +24,33 @@ class JWTHelper {
 
                 const token = jwt.sign({ 
                     exp: Math.floor(Date.now() / 1000) + (60 * 60),
-                    id: user.id,
+                    _id: user._id,
                     username: user.username,
+                    roles: user.roles.map(( role ) => { 
+                        return role.name; 
+                       })
                 }, privateKey, { algorithm: 'RS256' });
                 resolve({error: false, session: token});
             });
         });
     }
+
+    public verifyPermission = async(request: Request, action: string): Promise<boolean> => {
+        const roles = request.auth.roles;
+        let permissions = [];
+        let authorized = false;
+
+        for (const role of roles) {
+            const permissionList = (await this.roleService.GetRoleByName(role)).permissions;
+            permissions.push(permissionList);
+            permissionList.map((permission) => {
+                permission.action === action ? authorized = true : '';
+            })
+        }
+
+        return authorized;
+    }
+
 }
 
 export default JWTHelper;

@@ -105,9 +105,10 @@ class Seeder {
             const agentName = this.cryptoHelper.generateString(16);
             const communicationToken = this.cryptoHelper.generateToken().prod;
             const os = i % 2 === 0 ? OS.Linux : OS.Windows;
+            const master = i == 0 ? true : false;
             const addedBy = AddedBy.User;
             const addedByUser = users[faker.number.int({min: 0, max: userAmount - 1})]._id;
-            await this.agent.create({agentName, communicationToken, os, addedBy, addedByUser})
+            await this.agent.create({agentName, master, communicationToken, os, addedBy, addedByUser})
         }
     }
 
@@ -138,6 +139,7 @@ class Seeder {
         await this.permission.create({action: "job.write", description: "Can edit, create jobs"});
         await this.permission.create({action: "agent.read", description: "Can see agents"});
         await this.permission.create({action: "agent.write", description: "Can edit, create agents"});
+        await this.permission.create({action: "master.config.read", description: "Can retrieve configurations for master nodes"});
         await this.permission.create({action: "admin.user.read", description: "Can retrieve extended user information"});
         await this.permission.create({action: "admin.user.write", description: "Can modify extended user information"});
 
@@ -148,11 +150,10 @@ class Seeder {
 
     private seedRoles = async(permissions: PermissionDto[]) =>
     {   
-        var ModeratorFilter = ["user.read", "job.read", "job.write", "agent.read", "agent.write", "role.read"];
-        var UserFilter = ["user.read", "job.read", "job.write", "agent.read", "role.read"];
-        var guestFilter = ["user.read","job.read", "agent.read", "role.read"];
-
-
+        let ModeratorFilter = ["user.read", "job.read", "job.write", "agent.read", "agent.write", "role.read"];
+        let UserFilter = ["user.read", "job.read", "job.write", "agent.read", "role.read"];
+        let guestFilter = ["user.read","job.read", "agent.read", "role.read"];
+        let masterFilter = ["agent.read", "agent.write", "role.read"];
 
         await this.role.create({name: "Admin", permissions: permissions});
         await this.role.create({name: "Moderator", permissions: permissions.reduce((permissionsList, permission) => {
@@ -169,6 +170,12 @@ class Seeder {
         }, [])});
         await this.role.create({name: "Guest", permissions: permissions.reduce((permissionsList, permission) => {
             if (guestFilter.includes(permission.action)) {
+                permissionsList.push(permission)
+            };
+            return permissionsList;
+        }, [])})
+        await this.role.create({name: "Master", permissions: permissions.reduce((permissionsList, permission) => {
+            if (masterFilter.includes(permission.action)) {
                 permissionsList.push(permission)
             };
             return permissionsList;

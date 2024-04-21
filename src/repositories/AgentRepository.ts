@@ -6,7 +6,9 @@ export default class AgentRepository {
     private agent = agentModel;
 
     public getAllAgents = async (): Promise<AgentDto[]> =>
-        await this.agent.find();
+        await this.agent.find()
+        .populate("addedByUser")
+        .populate("addedByAgent");
 
     public getAgent = async (_id: string): Promise<AgentDto> => 
         await this.agent.findOne({_id})

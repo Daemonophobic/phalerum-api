@@ -50,12 +50,12 @@ const userSchema = new Schema<UserDto>(
         default: true,
         select: false,
     },
-    roles:[{ 
+    roles: [{ 
       type: Schema.Types.ObjectId, 
       ref: 'Role',
       default: [], 
       select: false,
-  }]
+    }]
   },
   {
     timestamps: true,

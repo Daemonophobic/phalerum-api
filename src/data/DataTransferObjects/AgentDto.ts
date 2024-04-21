@@ -11,6 +11,7 @@ export default class AgentDto {
     ipAddress: string;
     master: boolean;
     communicationToken: any;
+    createdAt: EpochTimeStamp;
     os: OS;
 
     constructor(data: any) {
@@ -23,6 +24,7 @@ export default class AgentDto {
         this.ipAddress = data.ipAddress;
         this.master = data.master;
         this.communicationToken = data.communicationToken;
+        this.createdAt = data.createdAt;
         this.os = data.os;
     }
 }

@@ -51,14 +51,14 @@ class AuthService {
        })
     }
 
-    public initializeTwoFactorAuthentication = async (user: Partial<UserDto>, OTP: number) => {
+    public initializeTwoFactorAuthentication = async (user: Partial<UserDto>, OTP: string) => {
         const authInfo = await this.authRepository.getAuthenticationInformation(user.emailAddress);
         if (typeof authInfo === 'boolean' || authInfo.initializationToken == null) {
             throw ExceptionEnum.InvalidResult;
         }
 
         const OTPSecret = this.cryptoHelper.decrypt(authInfo.OTPSecret);
-        const isValid = authenticator.check(OTP.toString(), OTPSecret);
+        const isValid = authenticator.check(OTP, OTPSecret);
         if (!isValid) throw ExceptionEnum.Forbidden;
 
         return !(await this.authRepository.unlockAccount(user.emailAddress)).locked;

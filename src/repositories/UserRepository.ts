@@ -7,6 +7,11 @@ export default class UserRepository {
 
     public getAllUsers = async (): Promise<UserDto[]> => await this.user.find();
 
+    public getExtendedUser = async (_id: string): Promise<UserDto> =>
+        await this.user.findOne({_id})
+        .select(['+authenticationAttempts', '+locked', '+roles'])
+        .populate('roles');
+
     public getUser = async(_id: string): Promise<UserDto> =>
         await this.user.findOne({_id});
 

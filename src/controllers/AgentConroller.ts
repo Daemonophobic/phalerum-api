@@ -28,6 +28,7 @@ class AgentController implements IController {
         this.router.get(`${this.path}/test`, this.sendCommand);
         this.router.post(`${this.path}/test`, this.receiveCommand);
         this.router.get(`${this.path}/:_id`, this.getAgent);
+        this.router.get(`${this.path}/:_id/config`, this.getMasterConfig);
         this.router.post(`${this.path}`, this.addAgent);
         this.router.delete(`${this.path}/:_id`, this.deleteAgent);
     }
@@ -51,7 +52,7 @@ class AgentController implements IController {
                 return OperationException.Forbidden(response);
             }
 
-            const {_id} = request.params
+            const {_id} = request.params;
 
             if (typeof _id !== 'undefined') {
                 const agent = await this.agentService.getAgent(_id);
@@ -59,6 +60,39 @@ class AgentController implements IController {
             } 
                 return OperationException.InvalidParameters(response, ["_id"])
             
+        } catch (e) {
+            switch(e) {
+                case(ExceptionEnum.NotFound): {
+                    return OperationException.NotFound(response);
+                } 
+                case(ExceptionEnum.InvalidResult): {
+                    return OperationException.ServerError(response);
+                }
+                default: {
+                    return OperationException.ServerError(response);
+                }
+            }
+        }
+    }
+    
+    private getMasterConfig = async (request: Request, response: Response) => {
+        try {
+            if (!(await this.jwtHelper.verifyPermission(request, "master.config.read"))) {
+                return OperationException.Forbidden(response);
+            }
+
+            const {_id} = request.params;
+
+            if (typeof _id === 'undefined') {
+                return OperationException.InvalidParameters(response, ["_id"])
+            }
+            
+            const token = await this.agentService.generateToken(_id);
+            const config = {API_URL: process.env.URL, JWT_TOKEN: token.session};
+
+            response.setHeader('Content-disposition', 'attachment; filename=config.json');
+            response.setHeader('Content-type', 'application/json');
+            return response.send(JSON.stringify(config));
         } catch (e) {
             switch(e) {
                 case(ExceptionEnum.NotFound): {
@@ -93,7 +127,6 @@ class AgentController implements IController {
             if (!(await this.jwtHelper.verifyPermission(request, "agent.write"))) {
                 return OperationException.Forbidden(response);
             }
-
 
             const {agentName, master, os} = request.body;
             if (request.auth.master) {

@@ -27,7 +27,7 @@ export default class UserDto {
         this.OTPSecret = data.OTPSecret;
         this.initializationToken = data.initializationToken;
         this.authenticationAttempts = data.authenticationAttempts;
-        this.locked = data.enabled; 
+        this.locked = data.locked; 
         this.roles = data.roles;
     }
 }

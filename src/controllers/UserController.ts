@@ -23,6 +23,7 @@ class UserController implements IController {
 
     private initializeRoutes() {
         this.router.get(`${this.path}`, this.getUsers);
+        this.router.get(`${this.path}/me`, this.getSelf);
         this.router.get(`${this.path}/:_id`, this.getUser);
         this.router.post(`${this.path}`, this.createUser);
         this.router.put(`${this.path}`, this.updateUser);
@@ -36,6 +37,16 @@ class UserController implements IController {
 
             const users = await this.userService.getAllUsers();
             return response.status(200).json(mapToDto(users, Dtos.UserDto));
+        } catch (e) {
+            console.log(e);
+            return OperationException.ServerError(response);
+        }
+    }
+
+    private getSelf = async (request: Request, response: Response) => {
+        try {
+            const user = await this.userService.getUser(request.auth._id);
+            return response.status(200).json(mapToDto(user, Dtos.UserDto));
         } catch (e) {
             console.log(e);
             return OperationException.ServerError(response);
@@ -85,7 +96,7 @@ class UserController implements IController {
 
             const user = await this.userService.addUser({firstName, lastName, username, emailAddress: email});
             logger.info(`Added user ${user.emailAddress}`);
-            return response.status(200).json(user);
+            return response.status(200).json(mapToDto(user, Dtos.UserDto));
         } catch (e) {
             logger.error(e);
             switch(e) {

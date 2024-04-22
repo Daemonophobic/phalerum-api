@@ -45,6 +45,10 @@ class UserController implements IController {
 
     private getSelf = async (request: Request, response: Response) => {
         try {
+            if (!(await this.jwtHelper.verifyPermission(request, "user.read"))) {
+                return OperationException.Forbidden(response);
+            }
+
             const user = await this.userService.getUser(request.auth._id);
             return response.status(200).json(mapToDto(user, Dtos.UserDto));
         } catch (e) {

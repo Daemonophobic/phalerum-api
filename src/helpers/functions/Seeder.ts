@@ -10,6 +10,7 @@ import AddedBy from '../../data/enums/AddedByEnum';
 import permissionModel from '../../models/permission';
 import roleModel from '../../models/role';
 import PermissionDto from '../../data/DataTransferObjects/PermissionDto';
+import campaignModel from '../../models/campaign';
 
 const bcrypt = require('bcrypt');
 
@@ -21,6 +22,7 @@ class Seeder {
     private job = jobModel;
     private permission = permissionModel;
     private role = roleModel;
+    private campaign = campaignModel;
     private cryptoHelper = new CryptoHelper();
     private userAmount = 5;
     private agentAmount = 5;
@@ -38,6 +40,9 @@ class Seeder {
         await this.clearCollections();
         // Adding Permissions
         var permissions = (await this.seedPermissions());
+
+        // Adding Campaigns
+        await this.seedCampaigns();
 
         // Adding Roles
         await this.seedRoles(permissions);
@@ -78,6 +83,18 @@ class Seeder {
         {
             await this.permission.collection.drop();
         }
+        if(collections.find(e=> e.name ==this.campaign.collection.name))
+        {
+            await this.campaign.collection.drop();
+        }
+    }
+
+    private seedCampaigns = async () => {
+        await this.campaign.create({number: 1, name: "Campaign 1", description: "This is the first campaign", startDate: new Date(), endDate: new Date(), active: false});
+        await this.campaign.create({number: 2, name: "Campaign 2", description: "This is the second campaign", startDate: new Date(), endDate: new Date(), active: false});
+        await this.campaign.create({number: 3, name: "Campaign 3", description: "This is the third campaign", startDate: new Date(), endDate: new Date(), active: false});
+        await this.campaign.create({number: 4, name: "Campaign 4", description: "This is the fourth campaign", startDate: new Date(), endDate: new Date(), active: false});
+        await this.campaign.create({number: 5, name: "Campaign 5", description: "This is the fifth campaign", startDate: new Date(), endDate: new Date(), active: true});
     }
 
     private seedUsers = async (userAmount: number) => {
@@ -142,6 +159,8 @@ class Seeder {
         await this.permission.create({action: "master.config.read", description: "Can retrieve configurations for master nodes"});
         await this.permission.create({action: "admin.user.read", description: "Can retrieve extended user information"});
         await this.permission.create({action: "admin.user.write", description: "Can modify extended user information"});
+        await this.permission.create({action: "campaign.read", description: "Can see campaigns"});
+        await this.permission.create({action: "campaign.write", description: "Can edit, create campaigns"});
 
         const result = await this.permission.find();
         
@@ -150,9 +169,9 @@ class Seeder {
 
     private seedRoles = async(permissions: PermissionDto[]) =>
     {   
-        let ModeratorFilter = ["user.read", "job.read", "job.write", "agent.read", "agent.write", "role.read"];
-        let UserFilter = ["user.read", "job.read", "job.write", "agent.read", "role.read"];
-        let guestFilter = ["user.read","job.read", "agent.read", "role.read"];
+        let ModeratorFilter = ["campaign.read", "user.read", "job.read", "job.write", "agent.read", "agent.write", "role.read"];
+        let UserFilter = ["campaign.read", "user.read", "job.read", "job.write", "agent.read", "role.read"];
+        let guestFilter = ["campaign.read", "user.read","job.read", "agent.read", "role.read"];
         let masterFilter = ["agent.read", "agent.write", "role.read"];
 
         await this.role.create({name: "Admin", permissions: permissions});

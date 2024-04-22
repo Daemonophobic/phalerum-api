@@ -4,7 +4,8 @@ enum Dtos {
     AgentDto = 'AgentDto',
     JobDto = 'JobDto',
     PermissionDto = 'PermissionDto',
-    RoleDto = 'RoleDto'
+    RoleDto = 'RoleDto',
+    CampaignDto = 'CampaignDto',
 }
 
 export default Dtos;

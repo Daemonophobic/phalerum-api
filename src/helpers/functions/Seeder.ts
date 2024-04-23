@@ -90,11 +90,7 @@ class Seeder {
     }
 
     private seedCampaigns = async () => {
-        await this.campaign.create({number: 1, name: "Campaign 1", description: "This is the first campaign", startDate: new Date(), endDate: new Date(), active: false});
-        await this.campaign.create({number: 2, name: "Campaign 2", description: "This is the second campaign", startDate: new Date(), endDate: new Date(), active: false});
-        await this.campaign.create({number: 3, name: "Campaign 3", description: "This is the third campaign", startDate: new Date(), endDate: new Date(), active: false});
-        await this.campaign.create({number: 4, name: "Campaign 4", description: "This is the fourth campaign", startDate: new Date(), endDate: new Date(), active: false});
-        await this.campaign.create({number: 5, name: "Campaign 5", description: "This is the fifth campaign", startDate: new Date(), endDate: new Date(), active: true});
+        await this.campaign.create({number: 1, name: "Fontys ICT #Netlab", description: "Netlab Campaign", startDate: new Date(), endDate: new Date(), active: true, grafanaId: "bebd59993fa141d3b396811aff737526"});
     }
 
     private seedUsers = async (userAmount: number) => {

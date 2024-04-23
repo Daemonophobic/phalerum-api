@@ -28,8 +28,8 @@ export default class CampaignRepository {
         .populate('createdBy');
 
     public createCampaign = async (campaign: Partial<CampaignDto>): Promise<CampaignDto> => {
-        const campaignAmount = this.campaign.countDocuments({});
-        return await this.campaign.create({number: campaignAmount, ...campaign});
+        const lastCampaignNumber = (await this.campaign.findOne({}).sort({number: -1}).limit(1)).number;
+        return await this.campaign.create({number: lastCampaignNumber + 1, ...campaign});
     }
 
     public updateCampaign = async (_id: string, campaign: Partial<CampaignDto>): Promise<CampaignDto> =>

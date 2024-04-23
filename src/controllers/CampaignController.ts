@@ -64,7 +64,7 @@ class CampaignController implements IController {
                 return OperationException.Forbidden(response);
             }            
 
-            const {_id} = request.params
+            const {_id} = request.params;
 
             if (typeof _id !== 'undefined') {
                 const campaign = await this.campaignService.getCampaign(_id);
@@ -95,14 +95,14 @@ class CampaignController implements IController {
             }
 
             const {_id} = request.params;
-            const {name, description, startDate, endDate, active} = request.body;
+            const {name, description, startDate, endDate, active, grafanaId} = request.body;
 
-            if (typeof name === 'undefined' && typeof description === 'undefined' && typeof startDate === 'undefined' && typeof endDate === 'undefined' && typeof active === 'undefined') {
-                return OperationException.InvalidParameters(response, ["name", "description", "startDate", "endDate", "active"]);
+            if (typeof name === 'undefined' && typeof description === 'undefined' && typeof startDate === 'undefined' && typeof endDate === 'undefined' && typeof active === 'undefined' && typeof grafanaId === 'undefined') {
+                return OperationException.InvalidParameters(response, ["name", "description", "startDate", "endDate", "active", "grafanaId"]);
             }
 
             if (typeof _id !== 'undefined') {
-                const campaign = await this.campaignService.updateCampaign(_id, {name, description, startDate, endDate, active});
+                const campaign = await this.campaignService.updateCampaign(_id, {name, description, startDate, endDate, active, grafanaId});
                 return response.status(200).json(mapToDto(campaign, Dtos.CampaignDto));
             }
                 return OperationException.InvalidParameters(response, ["_id"]);
@@ -135,7 +135,7 @@ class CampaignController implements IController {
                 return OperationException.InvalidParameters(response, ["name", "description", "startDate", "endDate", "active"]);
             }
             
-            const campaign = await this.campaignService.createCampaign({name, description, startDate, endDate, active});
+            const campaign = await this.campaignService.createCampaign({name, description, startDate, endDate, active, createdBy: request.auth._id});
             return response.status(200).json(mapToDto(campaign, Dtos.CampaignDto));
         } catch (e) {
             console.log(e);

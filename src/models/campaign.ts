@@ -35,6 +35,10 @@ const campaignSchema = new Schema<CampaignDto>(
             type: Boolean,
             default: true,
         },
+        grafanaId: {
+            type: String,
+            default: '',
+        },
         createdBy: {
             type: Schema.Types.ObjectId,
             ref: 'User',

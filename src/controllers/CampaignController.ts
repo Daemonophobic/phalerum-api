@@ -53,7 +53,7 @@ class CampaignController implements IController {
             const campaign = await this.campaignService.getCurrentCampaign();
             return response.status(200).json(mapToDto(campaign, Dtos.CampaignDto));
         } catch (e) {
-            logger.errro(e);
+            logger.error(e);
             return OperationException.ServerError(response);
         }
     }

@@ -1,4 +1,4 @@
-import AgentController from "./controllers/AgentConroller";
+import AgentController from "./controllers/AgentController";
 import AuthController from "./controllers/AuthController";
 import App from "./app";
 import logger from "./helpers/functions/logger";

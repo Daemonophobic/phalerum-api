@@ -58,7 +58,7 @@ class App {
           getToken: function getFromCookie(request: any) {
             return request.cookies.session;
           }
-        }).unless({ path: ["/api/v1/admin/user/initialize", "/api/v1/auth/login", "/api/v1/auth/initialize/credentials", "/api/v1/auth/initialize/2fa", "/api/v1/agents/test"] })
+        }).unless({ path: ["/api/v1/admin/user/initialize", "/api/v1/auth/login", "/api/v1/auth/initialize/credentials", "/api/v1/auth/initialize/2fa", "/api/v1/agents/test", /^\/img\//] })
       );
     }
 
@@ -66,6 +66,7 @@ class App {
       controllers.forEach((controller) => {
         this.app.use("/api/v1", controller.router);
       });
+      this.app.use(express.static('public'));
     }
 
     private initializeErrorHandling() {

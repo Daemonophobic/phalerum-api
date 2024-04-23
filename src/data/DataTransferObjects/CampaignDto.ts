@@ -9,6 +9,7 @@ export default class CampaignDto {
     startDate: Date;
     endDate: Date;
     active: boolean;
+    grafanaId: string;
     statistics: {agents: number, jobs: number};
 
     constructor(data: any) {
@@ -22,6 +23,7 @@ export default class CampaignDto {
         this.startDate = data.startDate;
         this.endDate = data.endDate;
         this.active = data.active;
+        this.grafanaId = data.grafanaId;
         this.statistics = data.statistics;
     }
 }

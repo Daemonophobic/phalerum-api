@@ -146,7 +146,7 @@ class AgentController implements IController {
             if (typeof master !== 'boolean' || !Object.values(OS).includes(os)) {
                 return OperationException.MissingParameters(response, ["agentName", "master", "os"]);
             }
-
+            
             const agent = await this.agentService.addAgent(master, os, AddedBy.User, request.auth._id, agentName);
             logger.info(`Agent added by ${request.auth.username}`);
             return response.status(200).json(mapToDto(agent, Dtos.AgentDto));

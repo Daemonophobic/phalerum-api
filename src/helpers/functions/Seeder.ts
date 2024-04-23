@@ -38,11 +38,12 @@ class Seeder {
     public seed = async () => {
         // Clear Collections
         await this.clearCollections();
-        // Adding Permissions
-        var permissions = (await this.seedPermissions());
 
         // Adding Campaigns
         await this.seedCampaigns();
+
+        // Adding Permissions
+        var permissions = (await this.seedPermissions());
 
         // Adding Roles
         await this.seedRoles(permissions);

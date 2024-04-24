@@ -34,8 +34,8 @@ class AgentService {
         }
 
         if (addedBy === AddedBy.User) 
-            return await this.agentRepository.addAgent({agentName, addedBy, addedByUser: addedByGuid, master, os, communicationToken: communicationToken.prod})
-        return await this.agentRepository.addAgent({agentName, addedBy, addedByAgent: addedByGuid, master: false, os, communicationToken: communicationToken.prod})
+            return this.agentRepository.addAgent({agentName, addedBy, addedByUser: addedByGuid, master, os, communicationToken: communicationToken.prod})
+        return this.agentRepository.addAgent({agentName, addedBy, addedByAgent: addedByGuid, master: false, os, communicationToken: communicationToken.prod})
     }
 
     public generateToken = async (_id: string): Promise<{error: boolean, session?: string}> => {

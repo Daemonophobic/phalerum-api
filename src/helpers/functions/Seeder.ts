@@ -43,7 +43,7 @@ class Seeder {
         await this.seedCampaigns();
 
         // Adding Permissions
-        var permissions = (await this.seedPermissions());
+        const permissions = (await this.seedPermissions());
 
         // Adding Roles
         await this.seedRoles(permissions);
@@ -63,7 +63,7 @@ class Seeder {
     }
 
     private clearCollections = async () => {
-        var collections = await this.user.collection.conn.listCollections();
+        const collections = await this.user.collection.conn.listCollections();
         if(collections.find(e => e.name == this.user.collection.name))
         {
             await this.user.collection.drop();
@@ -119,7 +119,7 @@ class Seeder {
             const agentName = this.cryptoHelper.generateString(16);
             const communicationToken = this.cryptoHelper.generateToken().prod;
             const os = i % 2 === 0 ? OS.Linux : OS.Windows;
-            const master = i == 0 ? true : false;
+            const master = i == 0;
             const addedBy = AddedBy.User;
             const addedByUser = users[faker.number.int({min: 0, max: userAmount - 1})]._id;
             await this.agent.create({agentName, master, communicationToken, os, addedBy, addedByUser})
@@ -166,12 +166,12 @@ class Seeder {
 
     private seedRoles = async(permissions: PermissionDto[]) =>
     {   
-        let ModeratorFilter = ["campaign.read", "user.read", "job.read", "job.write", "agent.read", "agent.write", "role.read"];
-        let UserFilter = ["campaign.read", "user.read", "job.read", "job.write", "agent.read", "role.read"];
-        let guestFilter = ["campaign.read", "user.read","job.read", "agent.read", "role.read"];
-        let masterFilter = ["agent.read", "agent.write", "role.read"];
+        const ModeratorFilter = ["campaign.read", "user.read", "job.read", "job.write", "agent.read", "agent.write", "role.read"];
+        const UserFilter = ["campaign.read", "user.read", "job.read", "job.write", "agent.read", "role.read"];
+        const guestFilter = ["campaign.read", "user.read","job.read", "agent.read", "role.read"];
+        const masterFilter = ["agent.read", "agent.write", "role.read"];
 
-        await this.role.create({name: "Admin", permissions: permissions});
+        await this.role.create({name: "Admin", permissions});
         await this.role.create({name: "Moderator", permissions: permissions.reduce((permissionsList, permission) => {
             if (ModeratorFilter.includes(permission.action)) {
                 permissionsList.push(permission)

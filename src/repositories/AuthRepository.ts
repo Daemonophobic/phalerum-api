@@ -6,9 +6,9 @@ export default class AuthRepository {
     private user = userModel;
 
     public getAuthenticationInformation = async (emailAddress: string): Promise<UserDto> => 
-        await this.user.findOne({emailAddress}).select(['+password', '+initializationToken', '+locked', '+authenticationAttempts', '+OTPSecret', '+roles'])
+        this.user.findOne({emailAddress}).select(['+password', '+initializationToken', '+locked', '+authenticationAttempts', '+OTPSecret', '+roles'])
         .populate('roles');
         
     public unlockAccount = async (emailAddress: string): Promise<UserDto> =>
-        await this.user.findOneAndUpdate({emailAddress}, {locked: false, initializationToken: null}, { new: true });
+        this.user.findOneAndUpdate({emailAddress}, {locked: false, initializationToken: null}, { new: true });
 }

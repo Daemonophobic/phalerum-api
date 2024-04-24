@@ -52,7 +52,7 @@ class UserService {
     }
 
     public updateUser = async (id: string, user: {firstName: string, lastName: string, username: string, emailAddress: string}) =>
-        await this.userRepository.updateUser(id, user);
+        this.userRepository.updateUser(id, user);
 }
 
 export default UserService;

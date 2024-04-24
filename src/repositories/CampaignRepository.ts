@@ -11,7 +11,7 @@ export default class CampaignRepository {
     private job = jobModel;
 
     public getCampaigns = async (): Promise<CampaignDto[]> =>
-        await this.campaign.find()
+        this.campaign.find()
         .populate('createdBy');
 
     public getCurrentCampaign = async (): Promise<CampaignDto> => {
@@ -24,18 +24,18 @@ export default class CampaignRepository {
     }
 
     public getCampaign = async (_id: string): Promise<CampaignDto> =>
-        await this.campaign.findOne({_id})
+        this.campaign.findOne({_id})
         .populate('createdBy');
 
     public createCampaign = async (campaign: Partial<CampaignDto>): Promise<CampaignDto> => {
-        if (await this.campaign.countDocuments({}) === 0) return await this.campaign.create({number: 1, ...campaign});
+        if (await this.campaign.countDocuments({}) === 0) return this.campaign.create({number: 1, ...campaign});
         const lastCampaignNumber = (await this.campaign.findOne({}).sort({number: -1}).limit(1)).number;
-        return await this.campaign.create({number: lastCampaignNumber + 1, ...campaign});
+        return this.campaign.create({number: lastCampaignNumber + 1, ...campaign});
     }
 
     public updateCampaign = async (_id: string, campaign: Partial<CampaignDto>): Promise<CampaignDto> =>
-        await this.campaign.findOneAndUpdate({_id}, campaign, { new: true });
+        this.campaign.findOneAndUpdate({_id}, campaign, { new: true });
 
     public deleteCampaign = async (_id: string): Promise<CampaignDto> =>
-        await this.campaign.findOneAndDelete({_id});
+        this.campaign.findOneAndDelete({_id});
 }

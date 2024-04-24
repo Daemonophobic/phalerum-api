@@ -50,7 +50,7 @@ const mapToDto = (data: any, type: Dtos): object => {
                             permissions.push(new PermissionDto(permission));
                         })
                     }
-                    var result = new RoleDto(role);
+                    const result = new RoleDto(role);
                     result.permissions = permissions;
                     roles.push(result);
                 });
@@ -62,7 +62,7 @@ const mapToDto = (data: any, type: Dtos): object => {
                     permissions.push(new PermissionDto(permission));
                 });
             }
-            var result = new RoleDto(data);
+            const result = new RoleDto(data);
             result.permissions = permissions;
             return result;
         }

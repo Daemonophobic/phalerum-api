@@ -8,6 +8,7 @@ import permissionModel from '../../models/permission';
 import roleModel from '../../models/role';
 import PermissionDto from '../../data/DataTransferObjects/PermissionDto';
 import campaignModel from '../../models/campaign';
+
 const { exec } = require('child_process');
 
 require('dotenv').config();
@@ -32,7 +33,7 @@ class ApplicationPreparer {
         await this.clearCollections();
 
         // Adding Permissions
-        var permissions = (await this.addPermissions());
+        const permissions = (await this.addPermissions());
 
         // Adding Roles
         await this.addRoles(permissions);
@@ -45,7 +46,7 @@ class ApplicationPreparer {
     }
 
     private clearCollections = async () => {
-        var collections = await this.user.collection.conn.listCollections();
+        const collections = await this.user.collection.conn.listCollections();
         if(collections.find(e => e.name == this.user.collection.name))
         {
             await this.user.collection.drop();
@@ -89,19 +90,19 @@ class ApplicationPreparer {
         await this.permission.create({action: "campaign.read", description: "Can see campaigns"});
         await this.permission.create({action: "campaign.write", description: "Can edit, create campaigns"});
 
-        var result = await this.permission.find();
+        const result = await this.permission.find();
         
         return result;
     }
 
     private addRoles = async(permissions: PermissionDto[]) =>
     {   
-        let ModeratorFilter = ["campaign.read", "user.read", "job.read", "job.write", "agent.read", "agent.write", "role.read"];
-        let UserFilter = ["campaign.read", "user.read", "job.read", "job.write", "agent.read", "role.read"];
-        let guestFilter = ["campaign.read", "user.read","job.read", "agent.read", "role.read"];
-        let masterFilter = ["agent.read", "agent.write", "role.read"];
+        const ModeratorFilter = ["campaign.read", "user.read", "job.read", "job.write", "agent.read", "agent.write", "role.read"];
+        const UserFilter = ["campaign.read", "user.read", "job.read", "job.write", "agent.read", "role.read"];
+        const guestFilter = ["campaign.read", "user.read","job.read", "agent.read", "role.read"];
+        const masterFilter = ["agent.read", "agent.write", "role.read"];
 
-        await this.role.create({name: "Admin", permissions: permissions});
+        await this.role.create({name: "Admin", permissions});
         await this.role.create({name: "Moderator", permissions: permissions.reduce((permissionsList, permission) => {
             if (ModeratorFilter.includes(permission.action)) {
                 permissionsList.push(permission)

@@ -138,9 +138,9 @@ class AgentController implements IController {
                     const agent = await this.agentService.addAgent(false, os, AddedBy.Agent, request.auth._id);
                     logger.info(`Agent added by master ${request.auth._id}`);
                     return response.status(200).json(mapToDto(agent, Dtos.AgentDto));
-                } else {
+                } 
                     return OperationException.InvalidParameters(response, ["os"])
-                }
+                
             }
 
             if (typeof master !== 'boolean' || !Object.values(OS).includes(os)) {

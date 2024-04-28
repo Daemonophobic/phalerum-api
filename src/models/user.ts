@@ -50,6 +50,11 @@ const userSchema = new Schema<UserDto>(
         default: true,
         select: false,
     },
+    profilePicture: {
+        type: String,
+        required: false,
+        default: 'default.jpg',
+    },
     roles: [{ 
       type: Schema.Types.ObjectId, 
       ref: 'Role',

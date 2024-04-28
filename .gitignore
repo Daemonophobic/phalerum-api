@@ -106,3 +106,7 @@ dist
 
 # Secrets
 certificates/
+
+# Uploads
+uploads/
+public/img/

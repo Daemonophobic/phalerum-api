@@ -51,7 +51,7 @@ class UserService {
          return data;
     }
 
-    public updateUser = async (id: string, user: {firstName: string, lastName: string, username: string, emailAddress: string}) =>
+    public updateUser = async (id: string, user: {firstName?: string, lastName?: string, username?: string, emailAddress?: string, profilePicture?: string}) =>
         this.userRepository.updateUser(id, user);
 }
 

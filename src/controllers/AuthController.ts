@@ -6,6 +6,8 @@ import IController from '../interfaces/IController';
 import { OperationException, ExceptionEnum } from '../helpers/exceptions/OperationExceptions';
 import logger from '../helpers/functions/logger';
 
+const Sentry = require("@sentry/node");
+
 class AuthController implements IController {
     public path = '/auth';
 
@@ -55,6 +57,7 @@ class AuthController implements IController {
             }
         } catch(e) {
             logger.error(e);
+            Sentry.captureException(e);
             switch (e) {
                 case (ExceptionEnum.Forbidden): {
                     return OperationException.Forbidden(response, {error: "This account is locked"})
@@ -87,6 +90,7 @@ class AuthController implements IController {
             return response.status(200).send(imageUrl);
         } catch (e) {
             logger.error(e);
+            Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);
@@ -115,6 +119,7 @@ class AuthController implements IController {
             response.status(200).json({success})
         } catch (e) {
             logger.error(e);
+            Sentry.captureException(e);
             switch (e) {
                 case (ExceptionEnum.Forbidden): {
                     return OperationException.Unauthenticated(response, {error: "Invalid OTP code"})
@@ -141,7 +146,8 @@ class AuthController implements IController {
             } 
                 return response.status(200).end();
             
-        } catch {
+        } catch (e) {
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -153,7 +159,8 @@ class AuthController implements IController {
             } 
                 return response.status(200).json({authenticated: false});
             
-        } catch {
+        } catch (e) {
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     } 

@@ -26,6 +26,16 @@ class AgentService {
         }
         return agent;
     }
+
+    public getAgentByComToken = async (communicationToken: string) => {
+        const hash = this.cryptoHelper.hash(communicationToken);
+        const agent = await this.agentRepository.getAgentByComToken(hash);
+        if (agent === null) {
+            throw ExceptionEnum.NotFound;
+        }
+        return agent;
+    }
+
     public addAgent = async (master: boolean, os: OsEnum, addedBy: AddedBy, addedByGuid: string, agentName: string = '') => {
         const communicationToken = this.cryptoHelper.generateToken();
 
@@ -34,8 +44,8 @@ class AgentService {
         }
 
         if (addedBy === AddedBy.User) 
-            return this.agentRepository.addAgent({agentName, addedBy, addedByUser: addedByGuid, master, os, communicationToken: communicationToken.prod})
-        return this.agentRepository.addAgent({agentName, addedBy, addedByAgent: addedByGuid, master: false, os, communicationToken: communicationToken.prod})
+            return this.agentRepository.addAgent({agentName, addedBy, addedByUser: addedByGuid, master, os, communicationToken: communicationToken.prod}, communicationToken.plain)
+        return this.agentRepository.addAgent({agentName, addedBy, addedByAgent: addedByGuid, master: false, os, communicationToken: communicationToken.prod}, communicationToken.plain)
     }
 
     public generateToken = async (_id: string): Promise<{error: boolean, session?: string}> => {

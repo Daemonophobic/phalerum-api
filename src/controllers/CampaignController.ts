@@ -9,6 +9,8 @@ import JWTHelper from '../helpers/functions/JWTHelper';
 import mapToDto from '../helpers/functions/DtoMapper';
 import Dtos from '../data/enums/DtoEnum';
 
+const Sentry = require("@sentry/node");
+
 class CampaignController implements IController {
     public path = '/campaigns';
 
@@ -40,6 +42,7 @@ class CampaignController implements IController {
             return response.status(200).json(mapToDto(campaigns, Dtos.CampaignDto));
         } catch (e) {
             logger.error(e);
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -54,6 +57,7 @@ class CampaignController implements IController {
             return response.status(200).json(mapToDto(campaign, Dtos.CampaignDto));
         } catch (e) {
             logger.error(e);
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -73,7 +77,8 @@ class CampaignController implements IController {
                 return OperationException.InvalidParameters(response, ["_id"])
             
         } catch (e) {
-            console.log(e);
+            logger.error(e);
+            Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);
@@ -108,7 +113,8 @@ class CampaignController implements IController {
                 return OperationException.InvalidParameters(response, ["_id"]);
             
         } catch (e) {
-            console.log(e);
+            logger.error(e)
+            Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);
@@ -138,7 +144,8 @@ class CampaignController implements IController {
             const campaign = await this.campaignService.createCampaign({name, description, startDate, endDate, active, createdBy: request.auth._id});
             return response.status(200).json(mapToDto(campaign, Dtos.CampaignDto));
         } catch (e) {
-            console.log(e);
+            logger.error(e);
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -158,7 +165,8 @@ class CampaignController implements IController {
                 return OperationException.InvalidParameters(response, ["_id"]);
             
         } catch (e) {
-            console.log(e);
+            logger.error(e);
+            Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);

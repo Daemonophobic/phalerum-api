@@ -10,7 +10,7 @@ export default class UserRepository {
     public getExtendedUser = async (_id: string): Promise<UserDto> =>
         this.user.findOne({_id})
         .select(['+authenticationAttempts', '+locked', '+roles'])
-        .populate('roles');
+        .populate('roles')
 
     public getUser = async(_id: string): Promise<UserDto> =>
         this.user.findOne({_id});

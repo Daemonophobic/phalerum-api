@@ -21,12 +21,22 @@ class UserService {
 
     public getAllUsers = async () => this.userRepository.getAllUsers();
 
-    public getUser = async (_id: string) => {
-        const user = await this.userRepository.getUser(_id);
+    public getUser = async (_id: string, self: boolean = false) => {
+        const user: any = await this.userRepository.getUser(_id);
         if (user === null) {
             throw ExceptionEnum.NotFound;
         }
-        return user;
+
+        if (self) {
+            const {roles} = await this.userRepository.getExtendedUser(_id);
+            const admin = roles.map(role => role.name === "Admin").includes(true)
+            if (!admin) {
+                return user;
+            }
+            return {...user.toObject(), admin: true};
+        } else {
+            return user;
+        }
     }
 
     public addUser = async (user: {firstName: string, lastName: string, username: string, emailAddress: string}, roleName: string = "Guest", initial: boolean = false) => {

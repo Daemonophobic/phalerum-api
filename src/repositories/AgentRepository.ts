@@ -15,8 +15,12 @@ export default class AgentRepository {
         .populate("addedByUser")
         .populate("addedByAgent");
 
-    public addAgent = async (agent: Partial<AgentDto>): Promise<AgentDto> =>
-        (await this.agent.create(agent)).toObject({ useProjection: true });
+    public getAgentByComToken = async (communicationToken: string): Promise<AgentDto> =>
+        this.agent.findOne({communicationToken: communicationToken});
+
+    public addAgent = async (agent: Partial<AgentDto>, communicationToken: string): Promise<AgentDto> => {
+        return {...(await this.agent.create(agent)).toObject({ useProjection: true }), communicationToken};
+    }
 
     public deleteAgent = async (_id: string) => 
         this.agent.findOneAndDelete({_id});

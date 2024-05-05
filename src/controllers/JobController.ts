@@ -8,6 +8,9 @@ import JobService from '../services/JobService';
 import mapToDto from '../helpers/functions/DtoMapper';
 import OS from '../data/enums/OsEnum';
 import JWTHelper from '../helpers/functions/JWTHelper';
+import logger from '../helpers/functions/logger';
+
+const Sentry = require("@sentry/node");
 
 class JobController implements IController {
     public path = '/jobs';
@@ -38,6 +41,7 @@ class JobController implements IController {
             const jobs = await this.jobService.getAllJobs();
             return response.status(200).json(mapToDto(jobs, Dtos.JobDto));
         } catch (e) {
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -57,6 +61,7 @@ class JobController implements IController {
                 return OperationException.InvalidParameters(response, ["_id"])
             
         } catch (e) {
+            Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);
@@ -89,7 +94,8 @@ class JobController implements IController {
             const job = await this.jobService.createJob(request.auth._id, {jobName, jobDescription, crossCompatible, os, agentId, masterJob, shellCommand, command});
             return response.status(200).json(mapToDto(job, Dtos.JobDto));
         } catch (e) {
-            console.log(e);
+            logger.error(e);
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -113,7 +119,8 @@ class JobController implements IController {
             const job = await this.jobService.updateJob(_id, {jobName, jobDescription, disabled, crossCompatible, os, agentId, masterJob, shellCommand, command});
             return response.status(200).json(mapToDto(job, Dtos.JobDto));
         } catch (e) {
-            console.log(e);
+            logger.error(e);
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -133,7 +140,8 @@ class JobController implements IController {
                 return OperationException.InvalidParameters(response, ["_id"])
             
         } catch (e) {
-            console.log(e);
+            logger.error(e);
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }

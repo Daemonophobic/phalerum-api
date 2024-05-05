@@ -11,6 +11,8 @@ import OS from '../data/enums/OsEnum';
 import AddedBy from '../data/enums/AddedByEnum';
 import JWTHelper from '../helpers/functions/JWTHelper';
 
+const Sentry = require("@sentry/node");
+
 class AgentController implements IController {
     public path = '/agents';
 
@@ -25,11 +27,10 @@ class AgentController implements IController {
 
     private initializeRoutes() {
         this.router.get(`${this.path}`, this.getAgents);
-        this.router.get(`${this.path}/test`, this.sendCommand);
-        this.router.post(`${this.path}/test`, this.receiveCommand);
         this.router.get(`${this.path}/:_id`, this.getAgent);
         this.router.get(`${this.path}/:_id/config`, this.getMasterConfig);
         this.router.post(`${this.path}`, this.addAgent);
+        this.router.post(`${this.path}/hello`, this.checkIn);
         this.router.delete(`${this.path}/:_id`, this.deleteAgent);
     }
 
@@ -42,6 +43,7 @@ class AgentController implements IController {
             const agents = await this.agentService.getAllAgents();
             return response.status(200).json(mapToDto(agents, Dtos.AgentDto));
         } catch (e) {
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -61,6 +63,7 @@ class AgentController implements IController {
                 return OperationException.InvalidParameters(response, ["_id"])
             
         } catch (e) {
+            Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);
@@ -94,6 +97,7 @@ class AgentController implements IController {
             response.setHeader('Content-type', 'application/json');
             return response.send(JSON.stringify(config));
         } catch (e) {
+            Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);
@@ -108,19 +112,50 @@ class AgentController implements IController {
         }
     }
 
-    private sendCommand = async (request: Request, response: Response) => {
-        response.send("ls -la").end();
+    private checkIn = async (request: Request, response: Response) => {
+        try {
+            const {communicationToken} = request.body;
+
+            if (typeof communicationToken === 'undefined') {
+                return OperationException.MissingParameters(response, ["communicationToken"]);
+            }
+
+            if (typeof communicationToken !== 'string') {
+                return OperationException.InvalidParameters(response, ["communicationToken"]);
+            }
+
+            const {_id, os} = await this.agentService.getAgentByComToken(communicationToken);
+                console.log(_id.toString(), os)
+            return response.status(200).end()
+        } catch (e) {
+            Sentry.captureException(e);
+            switch(e) {
+                case(ExceptionEnum.NotFound): {
+                    return OperationException.NotFound(response);
+                } 
+                case(ExceptionEnum.InvalidResult): {
+                    return OperationException.ServerError(response);
+                }
+                default: {
+                    return OperationException.ServerError(response);
+                }
+            }
+        }
     }
 
-    private receiveCommand = async (request: Request, response: Response) => {
-        const {message} = request.body;
-        if (message) {
-            const decode = (str: string):string => Buffer.from(str, 'base64').toString('utf8');
-            logger.info(`Received command output: ${decode(message)}`);
-            response.status(200).end();
-        }
-        response.status(400).end();
-    }
+    // private sendCommand = async (request: Request, response: Response) => {
+    //     response.send("ls -la").end();
+    // }
+
+    // private receiveCommand = async (request: Request, response: Response) => {
+    //     const {message} = request.body;
+    //     if (message) {
+    //         const decode = (str: string):string => Buffer.from(str, 'base64').toString('utf8');
+    //         logger.info(`Received command output: ${decode(message)}`);
+    //         response.status(200).end();
+    //     }
+    //     response.status(400).end();
+    // }
 
     private addAgent = async (request: Request, response: Response) => {
         try {
@@ -151,7 +186,7 @@ class AgentController implements IController {
             logger.info(`Agent added by ${request.auth.username}`);
             return response.status(200).json(mapToDto(agent, Dtos.AgentDto));
         } catch (e) {
-            console.log(e);
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -171,7 +206,7 @@ class AgentController implements IController {
                 return OperationException.InvalidParameters(response, ["_id"])
             
         } catch (e) {
-            console.log(e);
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }

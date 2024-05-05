@@ -12,6 +12,7 @@ import JWTHelper from '../helpers/functions/JWTHelper';
 const multer  = require('multer')
 const upload = multer({ dest: 'uploads/' })
 const fs = require('fs');
+const Sentry = require("@sentry/node");
 
 class UserController implements IController {
     public path = '/users';
@@ -44,7 +45,8 @@ class UserController implements IController {
             const users = await this.userService.getAllUsers();
             return response.status(200).json(mapToDto(users, Dtos.UserDto));
         } catch (e) {
-            console.log(e);
+            logger.error(e);
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -55,10 +57,11 @@ class UserController implements IController {
                 return OperationException.Forbidden(response);
             }
 
-            const user = await this.userService.getUser(request.auth._id);
+            const user = await this.userService.getUser(request.auth._id, true);
             return response.status(200).json(mapToDto(user, Dtos.UserDto));
         } catch (e) {
-            console.log(e);
+            logger.error(e);
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -78,7 +81,8 @@ class UserController implements IController {
                 return OperationException.InvalidParameters(response, ["_id"])
             
         } catch (e) {
-            console.log(e);
+            logger.error(e);
+            Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);
@@ -109,6 +113,7 @@ class UserController implements IController {
             return response.status(200).json(mapToDto(user, Dtos.UserDto));
         } catch (e) {
             logger.error(e);
+            Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.DuplicateKey): {
                     return OperationException.DuplicateKey(response, {error: "An account already exists with the provided email address or username"});
@@ -140,7 +145,8 @@ class UserController implements IController {
             return response.status(200).json(user);
 
         } catch (e) {
-            console.log(e);
+            logger.error(e);
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -181,7 +187,8 @@ class UserController implements IController {
             const user = await this.userService.updateUser(request.auth._id, {profilePicture: newName});
             return response.status(200).json(user);
         } catch (e) {
-            console.log(e);
+            logger.error(e);
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -202,7 +209,8 @@ class UserController implements IController {
             const user = await this.userService.updateUser(request.auth._id, {profilePicture: 'default.jpg'});
             return response.status(200).json(user);
         } catch (e) {
-            console.log(e);
+            logger.error(e);
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }

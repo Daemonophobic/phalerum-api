@@ -36,7 +36,7 @@ const agentSchema = new Schema<AgentDto>(
           default: false,
       },
       communicationToken: {
-          type: {cipher: String, iv: String},
+          type: String,
           required: true,
           select: false,
       },

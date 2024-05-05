@@ -7,7 +7,9 @@ import mapToDto from '../helpers/functions/DtoMapper';
 import Dtos from '../data/enums/DtoEnum';
 import {OperationException, ExceptionEnum} from '../helpers/exceptions/OperationExceptions';
 import JWTHelper from '../helpers/functions/JWTHelper';
+import logger from '../helpers/functions/logger';
 
+const Sentry = require("@sentry/node");
 
 class RoleController implements IController {
     public path = '/roles';
@@ -37,7 +39,8 @@ class RoleController implements IController {
         }
         catch(e)
         {
-            console.log(e);
+            logger.error(e);
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -54,6 +57,8 @@ class RoleController implements IController {
             return OperationException.InvalidParameters(response, ["_id"])
 
         }catch (e) {
+            logger.error(e);
+            Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);

@@ -15,6 +15,7 @@ export default class UserDto {
     locked: boolean;
     roles: Array<RoleDto>;
     profilePicture: string;
+    admin: boolean;
 
     constructor(data: any) {
         this._id = data._id;
@@ -31,5 +32,6 @@ export default class UserDto {
         this.locked = data.locked; 
         this.roles = data.roles;
         this.profilePicture = data.profilePicture;
+        this.admin = data.admin;
     }
 }

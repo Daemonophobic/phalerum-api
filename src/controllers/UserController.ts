@@ -107,7 +107,6 @@ class UserController implements IController {
             if (typeof firstName === 'undefined' || typeof lastName === 'undefined' || typeof username === 'undefined' || typeof email === 'undefined') {
                 return OperationException.MissingParameters(response, ["firstName", "lastName", "username", "email"]);
             }
-
             const user = await this.userService.addUser({firstName, lastName, username, emailAddress: email});
             logger.info(`Added user ${user.emailAddress}`);
             return response.status(200).json(mapToDto(user, Dtos.UserDto));

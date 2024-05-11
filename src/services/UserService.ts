@@ -40,7 +40,7 @@ class UserService {
     }
 
     public addUser = async (user: {firstName: string, lastName: string, username: string, emailAddress: string}, roleName: string = "Guest", initial: boolean = false) => {
-        const initializationToken = this.cryptoHelper.generateToken();
+        const initializationToken = this.cryptoHelper.generateInitializationToken();
 
         const role = await this.roleRepository.GetRoleByName(roleName);
         if (role === null) {

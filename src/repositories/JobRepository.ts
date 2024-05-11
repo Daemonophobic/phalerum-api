@@ -23,4 +23,17 @@ export default class JobRepository {
 
     public deleteJob = async (_id: string): Promise<JobDto> =>
         this.job.findOneAndDelete({_id});
+
+    public getAvailableJobs = async (os: string): Promise<JobDto[]> =>
+        this.job.find({ $or: [{ os }, { crossCompatible: true }]})
+        .where('available').equals(true)
+        .where('disabled').equals(false)
+        .where('masterJob').equals(false)
+        .where('agentId').exists(false);
+
+    public getJobsForAgent = async (agentId: string): Promise<JobDto[]> =>
+        this.job.find({ agentId })
+        .where('available').equals(true)
+        .where('disabled').equals(false)
+        .where('masterJob').equals(false);
 }

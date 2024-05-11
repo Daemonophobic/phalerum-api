@@ -5,6 +5,7 @@ import JobDto from "../../data/DataTransferObjects/JobDto";
 import RoleDto from "../../data/DataTransferObjects/RoleDto";
 import PermissionDto from "../../data/DataTransferObjects/PermissionDto";
 import CampaignDto from "../../data/DataTransferObjects/CampaignDto";
+import OutputDto from "../../data/DataTransferObjects/OutputDto";
 
 const mapToDto = (data: any, type: Dtos): object => {
     switch(type) {
@@ -85,6 +86,16 @@ const mapToDto = (data: any, type: Dtos): object => {
                 return campaigns;
             }
             return new CampaignDto(data);
+        }
+        case (Dtos.OutputDto): {
+            if (typeof data.length !== 'undefined') {
+                const outputs: OutputDto[] = [];
+                data.forEach((output: object) => {
+                    outputs.push(new OutputDto(output));
+                });
+                return outputs;
+            }
+            return new OutputDto(data);
         }
         default: {
             return {};

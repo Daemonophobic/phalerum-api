@@ -55,7 +55,7 @@ class Seeder {
         await this.seedAgents(this.userAmount, this.agentAmount);
 
         // Add Jobs
-        await this.seedJobs(this.userAmount, this.agentAmount, this.jobAmount);
+        await this.seedJobs();
 
 
         logger.info("Completed seeding the database!");
@@ -126,21 +126,9 @@ class Seeder {
         }
     }
 
-    private seedJobs = async (userAmount: number, agentAmount: number, jobAmount: number) => {
-        if (userAmount === 0 || agentAmount === 0) {
-            return;
-        }
-
-        const users = await this.user.find();
-        const agents = await this.agent.find();
-
-        for (let i = 0; i < jobAmount; i += 1) {
-            const jobName = faker.person.jobTitle();
-            const jobDescription = faker.person.jobDescriptor();
-            const createdBy = users[faker.number.int({min: 0, max: userAmount - 1})]._id;
-            const agentId = agents[faker.number.int({min: 0, max: agentAmount - 1})]._id;
-            await this.job.create({jobName, jobDescription, createdBy, agentId});
-        }
+    private seedJobs = async () => {        
+        await this.job.create({jobName: "Firewall Statistics", jobDescription: "Checks whether the firewall is enabled", crossCompatible: true, command: "builtin.firewall", available: true});
+        await this.job.create({jobName: "Check Password", jobDescription: "Checks whether the password was reset", crossCompatible: true, command: "builtin.password", available: true});
     }
 
     private seedPermissions = async(): Promise<PermissionDto[]> => 

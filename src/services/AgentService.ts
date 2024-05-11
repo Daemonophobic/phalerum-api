@@ -5,6 +5,7 @@ import JWTHelper from '../helpers/functions/JWTHelper';
 import OsEnum from '../data/enums/OsEnum';
 import AddedBy from '../data/enums/AddedByEnum';
 import { ExceptionEnum } from '../helpers/exceptions/OperationExceptions';
+import AgentDto from '../data/DataTransferObjects/AgentDto';
 
 class AgentService {
     private agentRepository: AgentRepository;
@@ -47,6 +48,8 @@ class AgentService {
             return this.agentRepository.addAgent({agentName, addedBy, addedByUser: addedByGuid, master, os, communicationToken: communicationToken.prod}, communicationToken.plain)
         return this.agentRepository.addAgent({agentName, addedBy, addedByAgent: addedByGuid, master: false, os, communicationToken: communicationToken.prod}, communicationToken.plain)
     }
+
+    public updateAgent = async (_id: string, agent: Partial<AgentDto>) => this.agentRepository.updateAgent(_id, agent);
 
     public generateToken = async (_id: string): Promise<{error: boolean, session?: string}> => {
         const agent = await this.agentRepository.getAgent(_id);

@@ -32,6 +32,11 @@ class CryptoHelper {
         return crypto.randomUUID();
     }
 
+    public generateInitializationToken(): {prod: {cipher: string, iv: string}, plain: string} {
+        const initializationToken = randomBytes(32).toString('hex');
+        return {prod: this.encrypt(initializationToken), plain: initializationToken};
+    }
+
     public generateToken(): {prod: string, plain: string} {
         const initializationToken = randomBytes(32).toString('hex');
         return {prod: this.hash(initializationToken), plain: initializationToken};

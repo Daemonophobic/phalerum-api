@@ -10,6 +10,7 @@ import logger from '../helpers/functions/logger';
 import OS from '../data/enums/OsEnum';
 import AddedBy from '../data/enums/AddedByEnum';
 import JWTHelper from '../helpers/functions/JWTHelper';
+import JobService from '../services/JobService';
 
 const Sentry = require("@sentry/node");
 
@@ -19,6 +20,7 @@ class AgentController implements IController {
     public router = Router();
 
     private agentService = new AgentService();
+    private jobService = new JobService();
     private jwtHelper = new JWTHelper();
 
     constructor() {
@@ -125,8 +127,11 @@ class AgentController implements IController {
             }
 
             const {_id, os} = await this.agentService.getAgentByComToken(communicationToken);
-                console.log(_id.toString(), os)
-            return response.status(200).end()
+            this.agentService.updateAgent(_id, {lastCheckIn: new Date()});
+
+            const jobs = await this.jobService.checkIn(os, {_id});
+
+            return response.json(jobs).end();
         } catch (e) {
             Sentry.captureException(e);
             switch(e) {

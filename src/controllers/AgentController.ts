@@ -33,6 +33,7 @@ class AgentController implements IController {
         this.router.get(`${this.path}/:_id/config`, this.getMasterConfig);
         this.router.post(`${this.path}`, this.addAgent);
         this.router.post(`${this.path}/hello`, this.checkIn);
+        this.router.get(`${this.path}/:_id/compile`, this.compileAgent);
         this.router.delete(`${this.path}/:_id`, this.deleteAgent);
     }
 
@@ -145,6 +146,29 @@ class AgentController implements IController {
                     return OperationException.ServerError(response);
                 }
             }
+        }
+    }
+
+    private compileAgent = async (request: Request, response: Response) => {
+        try {
+            if (!request.auth.master) {
+                return OperationException.Forbidden(response);
+            }
+
+            const {_id} = request.params;
+
+            if (typeof _id === 'undefined') {
+                return OperationException.InvalidParameters(response, ["_id"])
+            }
+
+            const agent = await this.agentService.getAgent(_id);
+            // const result = await this.agentService.compileAgent(agent);
+
+            return response.status(200).json(agent);
+        } catch (e) {
+            logger.error(e);
+            Sentry.captureException(e);
+            return OperationException.ServerError(response);
         }
     }
 

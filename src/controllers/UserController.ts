@@ -46,7 +46,7 @@ class UserController implements IController {
             return response.status(200).json(mapToDto(users, Dtos.UserDto));
         } catch (e) {
             logger.error(e);
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -61,7 +61,7 @@ class UserController implements IController {
             return response.status(200).json(mapToDto(user, Dtos.UserDto));
         } catch (e) {
             logger.error(e);
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -82,7 +82,7 @@ class UserController implements IController {
             
         } catch (e) {
             logger.error(e);
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);
@@ -112,7 +112,7 @@ class UserController implements IController {
             return response.status(200).json(mapToDto(user, Dtos.UserDto));
         } catch (e) {
             logger.error(e);
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.DuplicateKey): {
                     return OperationException.DuplicateKey(response, {error: "An account already exists with the provided email address or username"});
@@ -145,7 +145,7 @@ class UserController implements IController {
 
         } catch (e) {
             logger.error(e);
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -187,7 +187,7 @@ class UserController implements IController {
             return response.status(200).json(user);
         } catch (e) {
             logger.error(e);
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -209,7 +209,7 @@ class UserController implements IController {
             return response.status(200).json(user);
         } catch (e) {
             logger.error(e);
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }

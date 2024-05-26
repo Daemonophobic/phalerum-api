@@ -21,7 +21,7 @@ class App {
 
     constructor(controllers: IController[]) {
       this.app = express();
-      this.initializeMonitoring();
+      // this.initializeMonitoring();
       this.connectDatabase()
       .then(() => logger.info("Database Connected"))
       .catch((err) => logger.error(err));
@@ -92,7 +92,7 @@ class App {
     }
 
     private initializeErrorHandling() {
-      this.app.use(Sentry.Handlers.errorHandler());
+      // this.app.use(Sentry.Handlers.errorHandler());
       this.app.use(errorMiddleware);
     }
 

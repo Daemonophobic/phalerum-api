@@ -6,15 +6,18 @@ import OsEnum from '../data/enums/OsEnum';
 import AddedBy from '../data/enums/AddedByEnum';
 import { ExceptionEnum } from '../helpers/exceptions/OperationExceptions';
 import AgentDto from '../data/DataTransferObjects/AgentDto';
+import Compiler from '../helpers/functions/Compiler';
 
 class AgentService {
     private agentRepository: AgentRepository;
     private cryptoHelper: CryptoHelper;
+    private compiler: Compiler;
     private JWTHelper: JWTHelper;
 
     constructor() {
         this.agentRepository = new AgentRepository();
         this.cryptoHelper = new CryptoHelper();
+        this.compiler = new Compiler();
         this.JWTHelper = new JWTHelper();
     }
 
@@ -50,6 +53,10 @@ class AgentService {
     }
 
     public updateAgent = async (_id: string, agent: Partial<AgentDto>) => this.agentRepository.updateAgent(_id, agent);
+
+    public compileAgent = async (agent: AgentDto, comToken: string) => this.compiler.compile(agent, comToken);
+
+    public cleanup = async (binName: string) => this.compiler.cleanup(binName);
 
     public generateToken = async (_id: string): Promise<{error: boolean, session?: string}> => {
         const agent = await this.agentRepository.getAgent(_id);

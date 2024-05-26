@@ -47,7 +47,7 @@ class JobController implements IController {
             const jobs = await this.jobService.getAllJobs();
             return response.status(200).json(mapToDto(jobs, Dtos.JobDto));
         } catch (e) {
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -67,7 +67,7 @@ class JobController implements IController {
                 return OperationException.InvalidParameters(response, ["_id"])
             
         } catch (e) {
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);
@@ -94,7 +94,7 @@ class JobController implements IController {
 
             return response.status(200).json(mapToDto(outputs, Dtos.OutputDto));
         } catch (e) {
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);
@@ -128,7 +128,7 @@ class JobController implements IController {
             return response.status(200).json(mapToDto(job, Dtos.JobDto));
         } catch (e) {
             logger.error(e);
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -152,7 +152,7 @@ class JobController implements IController {
             return response.status(200).end();
         } catch (e) {
             logger.error(e);
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);
@@ -187,7 +187,7 @@ class JobController implements IController {
             return response.status(200).json(mapToDto(job, Dtos.JobDto));
         } catch (e) {
             logger.error(e);
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -208,7 +208,7 @@ class JobController implements IController {
             
         } catch (e) {
             logger.error(e);
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }

@@ -40,7 +40,7 @@ class RoleController implements IController {
         catch(e)
         {
             logger.error(e);
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -58,7 +58,7 @@ class RoleController implements IController {
 
         }catch (e) {
             logger.error(e);
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);

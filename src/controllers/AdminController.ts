@@ -40,7 +40,7 @@ class AgentController implements IController {
             return response.status(200).json(mapToDto(user, Dtos.UserDto));
         } catch (e) {
             logger.error(e);
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);
@@ -70,7 +70,7 @@ class AgentController implements IController {
             return response.status(200).json(mapToDto(user, Dtos.UserDto));
         } catch (e) {
             logger.error(e);
-            Sentry.captureException(e);
+            //Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);

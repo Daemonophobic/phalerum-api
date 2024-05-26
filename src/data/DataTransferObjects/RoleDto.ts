@@ -1,4 +1,5 @@
 import PermissionDto  from "./PermissionDto";
+
 export default class RoleDto {
     _id: string;
     name: string;

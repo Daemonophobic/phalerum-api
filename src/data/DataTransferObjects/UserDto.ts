@@ -14,6 +14,8 @@ export default class UserDto {
     authenticationAttempts: number;
     locked: boolean;
     roles: Array<RoleDto>;
+    profilePicture: string;
+    admin: boolean;
 
     constructor(data: any) {
         this._id = data._id;
@@ -27,7 +29,9 @@ export default class UserDto {
         this.OTPSecret = data.OTPSecret;
         this.initializationToken = data.initializationToken;
         this.authenticationAttempts = data.authenticationAttempts;
-        this.locked = data.enabled; 
+        this.locked = data.locked; 
         this.roles = data.roles;
+        this.profilePicture = data.profilePicture;
+        this.admin = data.admin;
     }
 }

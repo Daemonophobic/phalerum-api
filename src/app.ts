@@ -10,6 +10,7 @@ const cors = require("cors");
 const express = require("express");
 const { expressjwt: jwt } = require("express-jwt");
 const fs = require("fs");
+const Sentry = require("@sentry/node");
 
 require("dotenv").config();
 
@@ -20,6 +21,7 @@ class App {
 
     constructor(controllers: IController[]) {
       this.app = express();
+      this.initializeMonitoring();
       this.connectDatabase()
       .then(() => logger.info("Database Connected"))
       .catch((err) => logger.error(err));
@@ -58,7 +60,7 @@ class App {
           getToken: function getFromCookie(request: any) {
             return request.cookies.session;
           }
-        }).unless({ path: ["/api/v1/auth/login", "/api/v1/auth/initialize/credentials", "/api/v1/auth/initialize/2fa", "/api/v1/agents/test"] })
+        }).unless({ path: ["/api/v1/admin/user/initialize", "/api/v1/auth/login", "/api/v1/auth/initialize/credentials", "/api/v1/auth/initialize/2fa", "/api/v1/agents/hello", /^\/api\/v1\/jobs\/output\/[a-f0-9]{24}$/, /^\/img\//] })
       );
     }
 
@@ -66,9 +68,31 @@ class App {
       controllers.forEach((controller) => {
         this.app.use("/api/v1", controller.router);
       });
+      this.app.use(express.static('public'));
+    }
+
+    private initializeMonitoring() {
+      Sentry.init({
+        dsn: "https://8f849e01c76ebf50a1e2e3330e23d784@sentry.stickybits.red/8",
+        integrations: [
+          // enable MongoDB tracking
+          new Sentry.Integrations.Mongo({
+            useMongoose: true,
+          }),
+          // enable HTTP calls tracing
+          new Sentry.Integrations.Http({ tracing: true }),
+          // enable Express.js middleware tracing
+          new Sentry.Integrations.Express({ app: this.app }),
+        ],
+        // Performance Monitoring
+        tracesSampleRate: 1.0, //  Capture 100% of the transactions
+      });
+      this.app.use(Sentry.Handlers.requestHandler()); 
+      this.app.use(Sentry.Handlers.tracingHandler());
     }
 
     private initializeErrorHandling() {
+      this.app.use(Sentry.Handlers.errorHandler());
       this.app.use(errorMiddleware);
     }
 

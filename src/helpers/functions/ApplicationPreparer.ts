@@ -7,6 +7,8 @@ import jobModel from '../../models/job';
 import permissionModel from '../../models/permission';
 import roleModel from '../../models/role';
 import PermissionDto from '../../data/DataTransferObjects/PermissionDto';
+import campaignModel from '../../models/campaign';
+
 const { exec } = require('child_process');
 
 require('dotenv').config();
@@ -17,6 +19,7 @@ class ApplicationPreparer {
     private job = jobModel;
     private permission = permissionModel;
     private role = roleModel;
+    private campaign = campaignModel;
 
     constructor() {
         faker.seed(1898);
@@ -28,8 +31,9 @@ class ApplicationPreparer {
     public deploy = async () => {
         // Clear Collections
         await this.clearCollections();
+
         // Adding Permissions
-        var permissions = (await this.addPermissions());
+        const permissions = (await this.addPermissions());
 
         // Adding Roles
         await this.addRoles(permissions);
@@ -42,7 +46,7 @@ class ApplicationPreparer {
     }
 
     private clearCollections = async () => {
-        var collections = await this.user.collection.conn.listCollections();
+        const collections = await this.user.collection.conn.listCollections();
         if(collections.find(e => e.name == this.user.collection.name))
         {
             await this.user.collection.drop();
@@ -63,6 +67,10 @@ class ApplicationPreparer {
         {
             await this.permission.collection.drop();
         }
+        if(collections.find(e=> e.name ==this.campaign.collection.name))
+        {
+            await this.campaign.collection.drop();
+        }
     }
 
     private addPermissions = async(): Promise<PermissionDto[]> => 
@@ -76,21 +84,25 @@ class ApplicationPreparer {
         await this.permission.create({action: "job.write", description: "Can edit, create jobs"});
         await this.permission.create({action: "agent.read", description: "Can see agents"});
         await this.permission.create({action: "agent.write", description: "Can edit, create agents"});
+        await this.permission.create({action: "master.config.read", description: "Can retrieve configurations for master nodes"});
+        await this.permission.create({action: "admin.user.read", description: "Can retrieve extended user information"});
+        await this.permission.create({action: "admin.user.write", description: "Can modify extended user information"});
+        await this.permission.create({action: "campaign.read", description: "Can see campaigns"});
+        await this.permission.create({action: "campaign.write", description: "Can edit, create campaigns"});
 
-        var result = await this.permission.find();
+        const result = await this.permission.find();
         
         return result;
     }
 
     private addRoles = async(permissions: PermissionDto[]) =>
     {   
-        var ModeratorFilter = ["user.read", "job.read", "job.write", "agent.read", "agent.write", "role.read"];
-        var UserFilter = ["user.read", "job.read", "job.write", "agent.read", "role.read"];
-        var guestFilter = ["user.read","job.read", "agent.read", "role.read"];
+        const ModeratorFilter = ["campaign.read", "user.read", "job.read", "job.write", "agent.read", "agent.write", "role.read"];
+        const UserFilter = ["campaign.read", "user.read", "job.read", "job.write", "agent.read", "role.read"];
+        const guestFilter = ["campaign.read", "user.read","job.read", "agent.read", "role.read"];
+        const masterFilter = ["agent.read", "agent.write", "role.read"];
 
-
-
-        await this.role.create({name: "Admin", permissions: permissions});
+        await this.role.create({name: "Admin", permissions});
         await this.role.create({name: "Moderator", permissions: permissions.reduce((permissionsList, permission) => {
             if (ModeratorFilter.includes(permission.action)) {
                 permissionsList.push(permission)
@@ -105,6 +117,12 @@ class ApplicationPreparer {
         }, [])});
         await this.role.create({name: "Guest", permissions: permissions.reduce((permissionsList, permission) => {
             if (guestFilter.includes(permission.action)) {
+                permissionsList.push(permission)
+            };
+            return permissionsList;
+        }, [])})
+        await this.role.create({name: "Master", permissions: permissions.reduce((permissionsList, permission) => {
+            if (masterFilter.includes(permission.action)) {
                 permissionsList.push(permission)
             };
             return permissionsList;

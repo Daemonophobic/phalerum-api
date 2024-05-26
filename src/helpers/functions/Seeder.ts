@@ -10,6 +10,7 @@ import AddedBy from '../../data/enums/AddedByEnum';
 import permissionModel from '../../models/permission';
 import roleModel from '../../models/role';
 import PermissionDto from '../../data/DataTransferObjects/PermissionDto';
+import campaignModel from '../../models/campaign';
 
 const bcrypt = require('bcrypt');
 
@@ -21,6 +22,7 @@ class Seeder {
     private job = jobModel;
     private permission = permissionModel;
     private role = roleModel;
+    private campaign = campaignModel;
     private cryptoHelper = new CryptoHelper();
     private userAmount = 5;
     private agentAmount = 5;
@@ -36,8 +38,12 @@ class Seeder {
     public seed = async () => {
         // Clear Collections
         await this.clearCollections();
+
+        // Adding Campaigns
+        await this.seedCampaigns();
+
         // Adding Permissions
-        var permissions = (await this.seedPermissions());
+        const permissions = (await this.seedPermissions());
 
         // Adding Roles
         await this.seedRoles(permissions);
@@ -49,7 +55,7 @@ class Seeder {
         await this.seedAgents(this.userAmount, this.agentAmount);
 
         // Add Jobs
-        await this.seedJobs(this.userAmount, this.agentAmount, this.jobAmount);
+        await this.seedJobs();
 
 
         logger.info("Completed seeding the database!");
@@ -57,7 +63,7 @@ class Seeder {
     }
 
     private clearCollections = async () => {
-        var collections = await this.user.collection.conn.listCollections();
+        const collections = await this.user.collection.conn.listCollections();
         if(collections.find(e => e.name == this.user.collection.name))
         {
             await this.user.collection.drop();
@@ -78,6 +84,14 @@ class Seeder {
         {
             await this.permission.collection.drop();
         }
+        if(collections.find(e=> e.name ==this.campaign.collection.name))
+        {
+            await this.campaign.collection.drop();
+        }
+    }
+
+    private seedCampaigns = async () => {
+        await this.campaign.create({number: 1, name: "Fontys ICT #Netlab", description: "Netlab Campaign", startDate: new Date(), endDate: new Date(), active: true, grafanaId: "bebd59993fa141d3b396811aff737526"});
     }
 
     private seedUsers = async (userAmount: number) => {
@@ -105,32 +119,20 @@ class Seeder {
             const agentName = this.cryptoHelper.generateString(16);
             const communicationToken = this.cryptoHelper.generateToken().prod;
             const os = i % 2 === 0 ? OS.Linux : OS.Windows;
+            const master = i == 0;
             const addedBy = AddedBy.User;
             const addedByUser = users[faker.number.int({min: 0, max: userAmount - 1})]._id;
-            await this.agent.create({agentName, communicationToken, os, addedBy, addedByUser})
+            await this.agent.create({agentName, master, communicationToken, os, addedBy, addedByUser})
         }
     }
 
-    private seedJobs = async (userAmount: number, agentAmount: number, jobAmount: number) => {
-        if (userAmount === 0 || agentAmount === 0) {
-            return;
-        }
-
-        const users = await this.user.find();
-        const agents = await this.agent.find();
-
-        for (let i = 0; i < jobAmount; i += 1) {
-            const jobName = faker.person.jobTitle();
-            const jobDescription = faker.person.jobDescriptor();
-            const createdBy = users[faker.number.int({min: 0, max: userAmount - 1})]._id;
-            const agentId = agents[faker.number.int({min: 0, max: agentAmount - 1})]._id;
-            await this.job.create({jobName, jobDescription, createdBy, agentId});
-        }
+    private seedJobs = async () => {        
+        await this.job.create({jobName: "Firewall Statistics", jobDescription: "Checks whether the firewall is enabled", crossCompatible: true, command: "builtin.firewall", available: true});
+        await this.job.create({jobName: "Check Password", jobDescription: "Checks whether the password was reset", crossCompatible: true, command: "builtin.password", available: true});
     }
 
     private seedPermissions = async(): Promise<PermissionDto[]> => 
     {
-        
         await this.permission.create({action:"user.read", description: "Can see users"});
         await this.permission.create({action: "user.write", description: "Can edit, create users"});
         await this.permission.create({action: "role.read", description: "Can see roles"});
@@ -139,21 +141,25 @@ class Seeder {
         await this.permission.create({action: "job.write", description: "Can edit, create jobs"});
         await this.permission.create({action: "agent.read", description: "Can see agents"});
         await this.permission.create({action: "agent.write", description: "Can edit, create agents"});
+        await this.permission.create({action: "master.config.read", description: "Can retrieve configurations for master nodes"});
+        await this.permission.create({action: "admin.user.read", description: "Can retrieve extended user information"});
+        await this.permission.create({action: "admin.user.write", description: "Can modify extended user information"});
+        await this.permission.create({action: "campaign.read", description: "Can see campaigns"});
+        await this.permission.create({action: "campaign.write", description: "Can edit, create campaigns"});
 
-        var result = await this.permission.find();
+        const result = await this.permission.find();
         
         return result;
     }
 
     private seedRoles = async(permissions: PermissionDto[]) =>
     {   
-        var ModeratorFilter = ["user.read", "job.read", "job.write", "agent.read", "agent.write", "role.read"];
-        var UserFilter = ["user.read", "job.read", "job.write", "agent.read", "role.read"];
-        var guestFilter = ["user.read","job.read", "agent.read", "role.read"];
+        const ModeratorFilter = ["campaign.read", "user.read", "job.read", "job.write", "agent.read", "agent.write", "role.read"];
+        const UserFilter = ["campaign.read", "user.read", "job.read", "job.write", "agent.read", "role.read"];
+        const guestFilter = ["campaign.read", "user.read","job.read", "agent.read", "role.read"];
+        const masterFilter = ["agent.read", "agent.write", "role.read"];
 
-
-
-        await this.role.create({name: "Admin", permissions: permissions});
+        await this.role.create({name: "Admin", permissions});
         await this.role.create({name: "Moderator", permissions: permissions.reduce((permissionsList, permission) => {
             if (ModeratorFilter.includes(permission.action)) {
                 permissionsList.push(permission)
@@ -168,6 +174,12 @@ class Seeder {
         }, [])});
         await this.role.create({name: "Guest", permissions: permissions.reduce((permissionsList, permission) => {
             if (guestFilter.includes(permission.action)) {
+                permissionsList.push(permission)
+            };
+            return permissionsList;
+        }, [])})
+        await this.role.create({name: "Master", permissions: permissions.reduce((permissionsList, permission) => {
+            if (masterFilter.includes(permission.action)) {
                 permissionsList.push(permission)
             };
             return permissionsList;

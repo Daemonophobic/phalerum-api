@@ -44,6 +44,18 @@ const jobSchema = new Schema<JobDto>(
         type: String,
         default: '',
       },
+      available: {
+        type: Boolean,
+        default: false,
+      },
+      useCron: {
+        type: Boolean,
+        default: false,
+      },
+      cron: {
+        type: String,
+        default: '',
+      },
       createdAt: {
         type: Date,
         default: Date.now,

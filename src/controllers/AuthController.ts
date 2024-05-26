@@ -6,6 +6,8 @@ import IController from '../interfaces/IController';
 import { OperationException, ExceptionEnum } from '../helpers/exceptions/OperationExceptions';
 import logger from '../helpers/functions/logger';
 
+const Sentry = require("@sentry/node");
+
 class AuthController implements IController {
     public path = '/auth';
 
@@ -27,7 +29,7 @@ class AuthController implements IController {
 
     private authenticateUser = async (request: Request, response: Response) => {
         try {
-            const { email, password, OTP } = request.body;
+            const { email, password, OTP, keepSession=false } = request.body;
 
             if (typeof email === 'undefined' || typeof password === 'undefined' || typeof OTP === 'undefined')
                 return OperationException.MissingParameters(response, ["email", "password", "OTP"]);
@@ -39,15 +41,23 @@ class AuthController implements IController {
             } else {
                 logger.info(`User ${email} authenticated`);
 
-                return response.cookie('session', result.session, {
+                return keepSession ? response.cookie('session', result.session, {
                     maxAge: 7200*1000,
                     path: "/api",
                     httpOnly: true,
                     secure: true,
+                    sameSite: 'strict',
+                }).json({success: true}) :
+                response.cookie('session', result.session, {
+                    path: "/api",
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: 'strict',
                 }).json({success: true});
             }
         } catch(e) {
             logger.error(e);
+            Sentry.captureException(e);
             switch (e) {
                 case (ExceptionEnum.Forbidden): {
                     return OperationException.Forbidden(response, {error: "This account is locked"})
@@ -80,6 +90,7 @@ class AuthController implements IController {
             return response.status(200).send(imageUrl);
         } catch (e) {
             logger.error(e);
+            Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);
@@ -98,16 +109,17 @@ class AuthController implements IController {
         try {
             const { email, OTP } = request.body;
 
-            if (typeof email === 'undefined' || typeof OTP !== 'number') {
+            if (typeof email === 'undefined' || typeof OTP === 'undefined') {
                 return OperationException.MissingParameters(response, ["email", "OTP"]);
             }
 
-            const success = await this.authService.initializeTwoFactorAuthentication({emailAddress: email}, OTP)
-            logger.info(`User ${email} unlocked`);        
+            const success = await this.authService.initializeTwoFactorAuthentication({emailAddress: email}, OTP);
+            logger.info(`User ${email} unlocked`);
 
             response.status(200).json({success})
         } catch (e) {
             logger.error(e);
+            Sentry.captureException(e);
             switch (e) {
                 case (ExceptionEnum.Forbidden): {
                     return OperationException.Unauthenticated(response, {error: "Invalid OTP code"})
@@ -134,7 +146,8 @@ class AuthController implements IController {
             } 
                 return response.status(200).end();
             
-        } catch {
+        } catch (e) {
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -146,7 +159,8 @@ class AuthController implements IController {
             } 
                 return response.status(200).json({authenticated: false});
             
-        } catch {
+        } catch (e) {
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     } 

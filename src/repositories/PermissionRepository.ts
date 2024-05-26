@@ -5,15 +5,15 @@ import permissionModel from "../models/permission";
 export default class PermissionRepository{
     private permission = permissionModel;
 
-    public getAllPermission = async(): Promise<PermissionDto[]> => await this.permission.find();
+    public getAllPermission = async(): Promise<PermissionDto[]> => this.permission.find();
 
-    public getPermission = async(_id: string): Promise<PermissionDto> => await this.permission.findOne({_id});
+    public getPermission = async(_id: string): Promise<PermissionDto> => this.permission.findOne({_id});
 
-    public getIdByAction = async(action: string): Promise<string> => await this.permission.findOne({action})
+    public getIdByAction = async(action: string): Promise<string> => this.permission.findOne({action})
 
     public CreatePermission = async(permission: Partial<PermissionDto>): Promise<PermissionDto> => {
         try{
-            return (await this.permission.create(permission)).toObject({ useProjection: true });
+            return await (await this.permission.create(permission)).toObject({ useProjection: true });
         }
         catch(e)
         {

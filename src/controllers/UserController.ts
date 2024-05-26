@@ -9,6 +9,11 @@ import mapToDto from '../helpers/functions/DtoMapper';
 import logger from '../helpers/functions/logger';
 import JWTHelper from '../helpers/functions/JWTHelper';
 
+const multer  = require('multer')
+const upload = multer({ dest: 'uploads/' })
+const fs = require('fs');
+const Sentry = require("@sentry/node");
+
 class UserController implements IController {
     public path = '/users';
 
@@ -23,8 +28,11 @@ class UserController implements IController {
 
     private initializeRoutes() {
         this.router.get(`${this.path}`, this.getUsers);
+        this.router.get(`${this.path}/me`, this.getSelf);
         this.router.get(`${this.path}/:_id`, this.getUser);
         this.router.post(`${this.path}`, this.createUser);
+        this.router.post(`${this.path}/avatar`, upload.single('picture'), this.updateUserAvatar);
+        this.router.delete(`${this.path}/avatar`, this.resetUserAvatar);
         this.router.put(`${this.path}`, this.updateUser);
     }
 
@@ -37,7 +45,23 @@ class UserController implements IController {
             const users = await this.userService.getAllUsers();
             return response.status(200).json(mapToDto(users, Dtos.UserDto));
         } catch (e) {
-            console.log(e);
+            logger.error(e);
+            Sentry.captureException(e);
+            return OperationException.ServerError(response);
+        }
+    }
+
+    private getSelf = async (request: Request, response: Response) => {
+        try {
+            if (!(await this.jwtHelper.verifyPermission(request, "user.read"))) {
+                return OperationException.Forbidden(response);
+            }
+
+            const user = await this.userService.getUser(request.auth._id, true);
+            return response.status(200).json(mapToDto(user, Dtos.UserDto));
+        } catch (e) {
+            logger.error(e);
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }
@@ -57,7 +81,8 @@ class UserController implements IController {
                 return OperationException.InvalidParameters(response, ["_id"])
             
         } catch (e) {
-            console.log(e);
+            logger.error(e);
+            Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
                     return OperationException.NotFound(response);
@@ -82,12 +107,12 @@ class UserController implements IController {
             if (typeof firstName === 'undefined' || typeof lastName === 'undefined' || typeof username === 'undefined' || typeof email === 'undefined') {
                 return OperationException.MissingParameters(response, ["firstName", "lastName", "username", "email"]);
             }
-
             const user = await this.userService.addUser({firstName, lastName, username, emailAddress: email});
             logger.info(`Added user ${user.emailAddress}`);
-            return response.status(200).json(user);
+            return response.status(200).json(mapToDto(user, Dtos.UserDto));
         } catch (e) {
             logger.error(e);
+            Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.DuplicateKey): {
                     return OperationException.DuplicateKey(response, {error: "An account already exists with the provided email address or username"});
@@ -119,7 +144,72 @@ class UserController implements IController {
             return response.status(200).json(user);
 
         } catch (e) {
-            console.log(e);
+            logger.error(e);
+            Sentry.captureException(e);
+            return OperationException.ServerError(response);
+        }
+    }
+
+    private updateUserAvatar = async (request: any, response: Response) => {
+        try {
+            if (!(await this.jwtHelper.verifyPermission(request, "user.read"))) {
+                return OperationException.Forbidden(response);
+            }
+
+            const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!allowedMimeTypes.includes(request.file.mimetype)) {
+                fs.unlink(request.file.path, (err: Error) => {
+                    if (err !== null) logger.error(err);
+                });
+                return OperationException.InvalidParameters(response, ["picture"]);
+            }
+
+            const newName = `${request.file.filename}.${request.file.mimetype.split("/")[1]}`;
+
+            fs.rename(request.file.path, `public/img/${newName}`, (err: Error) => {
+                if (err !== null) {
+                    logger.error(err);
+                    fs.unlink(request.file.path, (err: Error) => {
+                        if (err !== null) logger.error(err);
+                    });
+                    return OperationException.ServerError(response);
+                }
+            });
+
+            const {profilePicture} = await this.userService.getUser(request.auth._id);
+            if (profilePicture !== 'default.jpg') {
+                fs.unlink(`public/img/${profilePicture}`, (err: Error) => {
+                    if (err !== null) logger.error(err);
+                });
+            }
+
+            const user = await this.userService.updateUser(request.auth._id, {profilePicture: newName});
+            return response.status(200).json(user);
+        } catch (e) {
+            logger.error(e);
+            Sentry.captureException(e);
+            return OperationException.ServerError(response);
+        }
+    }
+
+    private resetUserAvatar = async (request: Request, response: Response) => {
+        try {
+            if (!(await this.jwtHelper.verifyPermission(request, "user.read"))) {
+                return OperationException.Forbidden(response);
+            }
+
+            const {profilePicture} = await this.userService.getUser(request.auth._id);
+            if (profilePicture !== 'default.jpg') {
+                fs.unlink(`public/img/${profilePicture}`, (err: Error) => {
+                    if (err !== null) logger.error(err);
+                });
+            }
+
+            const user = await this.userService.updateUser(request.auth._id, {profilePicture: 'default.jpg'});
+            return response.status(200).json(user);
+        } catch (e) {
+            logger.error(e);
+            Sentry.captureException(e);
             return OperationException.ServerError(response);
         }
     }

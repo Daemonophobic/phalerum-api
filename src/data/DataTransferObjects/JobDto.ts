@@ -12,6 +12,9 @@ export default class JobDto {
     masterJob: boolean;
     shellCommand: boolean;
     command: string;
+    available: boolean;
+    useCron: boolean;
+    cron: string;
     createdAt: Date;
     updatedAt: Date;
     createdBy: any;
@@ -28,8 +31,11 @@ export default class JobDto {
         this.masterJob = data.masterJob;
         this.shellCommand = data.shellCommand;
         this.command = data.command;
+        this.available = data.available;
+        this.useCron = data.useCron;
+        this.cron = data.cron;
         this.createdAt = data.createdAt;
         this.updatedAt = data.updatedAt;
-        this.createdBy = data.createdBy;      
+        this.createdBy = data.createdBy;
     }
 }

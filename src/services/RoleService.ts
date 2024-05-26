@@ -12,7 +12,7 @@ class RoleService {
         this.permissionRepository = new PermissionRepository();
     }
 
-    public GetAllRole = async() => await this.roleRepository.GetAllRoles();
+    public GetAllRole = async() => this.roleRepository.GetAllRoles();
 
     public GetRole = async(_id: string) => {
         const role = await this.roleRepository.GetRole(_id);

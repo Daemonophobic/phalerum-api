@@ -1,0 +1,3 @@
+[submodule "agents-linux"]
+	path = agents-linux
+	url = git@github.com:Daemonophobic/agents-linux.git

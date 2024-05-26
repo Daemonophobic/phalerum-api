@@ -26,13 +26,20 @@ class CryptoHelper {
         return decrypted.toString();
     }
 
+    public hash = (data: string): string => crypto.createHash('sha256').update(data).digest('hex');
+
     public generateGuid(): string {
         return crypto.randomUUID();
     }
 
-    public generateToken(): {prod: {cipher: string, iv: string}, plain: string} {
+    public generateInitializationToken(): {prod: {cipher: string, iv: string}, plain: string} {
         const initializationToken = randomBytes(32).toString('hex');
         return {prod: this.encrypt(initializationToken), plain: initializationToken};
+    }
+
+    public generateToken(): {prod: string, plain: string} {
+        const initializationToken = randomBytes(32).toString('hex');
+        return {prod: this.hash(initializationToken), plain: initializationToken};
     }
 
     public generateString(length: number): string {

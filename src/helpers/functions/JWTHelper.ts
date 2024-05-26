@@ -1,7 +1,8 @@
+import { Request } from 'express-jwt';
 import RoleDto from "../../data/DataTransferObjects/RoleDto";
 import RoleService from "../../services/RoleService";
 import UserDto from "../../data/DataTransferObjects/UserDto";
-import { Request } from 'express-jwt';
+import AgentDto from "../../data/DataTransferObjects/AgentDto";
 
 const bcrypt = require('bcrypt');
 const fs = require('fs');
@@ -26,18 +27,29 @@ class JWTHelper {
                     exp: Math.floor(Date.now() / 1000) + (60 * 60),
                     _id: user._id,
                     username: user.username,
-                    roles: user.roles.map(( role ) => { 
-                        return role.name; 
-                       })
+                    roles: user.roles.map(( role ) => role.name)
                 }, privateKey, { algorithm: 'RS256' });
                 resolve({error: false, session: token});
             });
         });
     }
 
+    public generateToken = async (agent: AgentDto): Promise<{error: boolean, session?: string}> => {
+        const {privateKey} = this;
+        return new Promise((resolve, reject) => {
+            const token = jwt.sign({
+                _id: agent._id,
+                master: agent.master,
+                roles: [agent.master ? "Master" : reject({"error": true})]
+            }, privateKey, {algorithm: 'RS256'});
+    
+            resolve({error: false, session: token});
+        });
+    }
+
     public verifyPermission = async(request: Request, action: string): Promise<boolean> => {
-        const roles = request.auth.roles;
-        let permissions = [];
+        const {roles} = request.auth;
+        const permissions = [];
         let authorized = false;
 
         for (const role of roles) {

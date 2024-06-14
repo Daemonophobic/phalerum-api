@@ -24,6 +24,9 @@ To install and set up the project, follow these steps:
 5. Seed the database by running `npm run prepare-database`.
 6. Build the source code by running `npm run build`
 6. Run the server by running `npm start`.
+7. By first time setup you can call the `initializeAdmin` function in the admin controller. The request accepts: ```JSON {"firstName":"<firstname>", "lastName": "<lastname>", "username": "<admin username>", "email": "<working email>" }```
+8. Open the email that was send to the working email in the last stap to set up your account.
+9. Enjoy the product
 
 ### Development
 Run `npm run dev` to run the API in JIT development mode.

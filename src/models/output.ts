@@ -21,6 +21,10 @@ const outputSchema = new Schema<OutputDto>(
           ref: 'Agent',
           required: true,
       },
+      deleted: {
+          type: Boolean,
+          default: false,
+      },
     },
     {
       timestamps: true,

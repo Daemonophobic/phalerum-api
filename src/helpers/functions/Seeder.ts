@@ -43,19 +43,19 @@ class Seeder {
         await this.seedCampaigns();
 
         // Adding Permissions
-        const permissions = (await this.seedPermissions());
+        // const permissions = (await this.seedPermissions());
 
         // Adding Roles
-        await this.seedRoles(permissions);
+        // await this.seedRoles(permissions);
 
         // Adding Users
-        await this.seedUsers(this.userAmount);
+        // await this.seedUsers(this.userAmount);
         
         // Adding Agents
-        await this.seedAgents(this.userAmount, this.agentAmount);
+        // await this.seedAgents(this.userAmount, this.agentAmount);
 
         // Add Jobs
-        await this.seedJobs();
+        // await this.seedJobs();
 
 
         logger.info("Completed seeding the database!");
@@ -64,26 +64,26 @@ class Seeder {
 
     private clearCollections = async () => {
         const collections = await this.user.collection.conn.listCollections();
-        if(collections.find(e => e.name == this.user.collection.name))
-        {
-            await this.user.collection.drop();
-        }
+        // if(collections.find(e => e.name == this.user.collection.name))
+        // {
+        //     await this.user.collection.drop();
+        // }
         if(collections.find(e => e.name == this.agent.collection.name))
         {
             await this.agent.collection.drop();
         }
-        if(collections.find(e => e.name == this.job.collection.name))
-        {
-            await this.job.collection.drop();
-        }
-        if(collections.find(e => e.name == this.role.collection.name))
-        {
-            await this.role.collection.drop();
-        }
-        if(collections.find(e=> e.name ==this.permission.collection.name))
-        {
-            await this.permission.collection.drop();
-        }
+        // if(collections.find(e => e.name == this.job.collection.name))
+        // {
+        //     await this.job.collection.drop();
+        // }
+        // if(collections.find(e => e.name == this.role.collection.name))
+        // {
+        //     await this.role.collection.drop();
+        // }
+        // if(collections.find(e=> e.name ==this.permission.collection.name))
+        // {
+        //     await this.permission.collection.drop();
+        // }
         if(collections.find(e=> e.name ==this.campaign.collection.name))
         {
             await this.campaign.collection.drop();

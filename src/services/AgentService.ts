@@ -7,15 +7,18 @@ import AddedBy from '../data/enums/AddedByEnum';
 import { ExceptionEnum } from '../helpers/exceptions/OperationExceptions';
 import AgentDto from '../data/DataTransferObjects/AgentDto';
 import Compiler from '../helpers/functions/Compiler';
+import OutputRepository from '../repositories/OutputRepository';
 
 class AgentService {
     private agentRepository: AgentRepository;
+    private outputRepository: OutputRepository;
     private cryptoHelper: CryptoHelper;
     private compiler: Compiler;
     private JWTHelper: JWTHelper;
 
     constructor() {
         this.agentRepository = new AgentRepository();
+        this.outputRepository = new OutputRepository();
         this.cryptoHelper = new CryptoHelper();
         this.compiler = new Compiler();
         this.JWTHelper = new JWTHelper();
@@ -40,7 +43,7 @@ class AgentService {
         return agent;
     }
 
-    public addAgent = async (master: boolean, os: OsEnum, addedBy: AddedBy, addedByGuid: string, agentName: string = '') => {
+    public addAgent = async (master: boolean, os: OsEnum, addedBy: AddedBy, addedByGuid: string, ipAddress: string = '', agentName: string = '') => {
         const communicationToken = this.cryptoHelper.generateToken();
 
         if (addedBy === AddedBy.Agent || (addedBy === AddedBy.User && agentName === '')) {
@@ -48,8 +51,8 @@ class AgentService {
         }
 
         if (addedBy === AddedBy.User) 
-            return this.agentRepository.addAgent({agentName, addedBy, addedByUser: addedByGuid, master, os, communicationToken: communicationToken.prod}, communicationToken.plain)
-        return this.agentRepository.addAgent({agentName, addedBy, addedByAgent: addedByGuid, master: false, os, communicationToken: communicationToken.prod}, communicationToken.plain)
+            return this.agentRepository.addAgent({agentName, ipAddress: ipAddress, addedBy, addedByUser: addedByGuid, master, os, communicationToken: communicationToken.prod}, communicationToken.plain)
+        return this.agentRepository.addAgent({agentName, ipAddress: ipAddress, addedBy, addedByAgent: addedByGuid, master: false, os, communicationToken: communicationToken.prod}, communicationToken.plain)
     }
 
     public updateAgent = async (_id: string, agent: Partial<AgentDto>) => this.agentRepository.updateAgent(_id, agent);
@@ -66,7 +69,10 @@ class AgentService {
         return this.JWTHelper.generateToken(agent);
     }
 
-    public deleteAgent = async (_id: string) => this.agentRepository.deleteAgent(_id);
+    public deleteAgent = async (_id: string) => {
+        this.agentRepository.deleteAgent(_id);
+        this.outputRepository.setOutputDeletedForAgent(_id);
+    }
 }
 
 export default AgentService;

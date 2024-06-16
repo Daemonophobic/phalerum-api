@@ -131,9 +131,13 @@ class AgentController implements IController {
             logger.info(`Agent ${_id} checked in`)
             this.agentService.updateAgent(_id, {lastCheckIn: new Date()});
 
-            const jobs = await this.jobService.checkIn(os, {_id});
+            const {jobs} = await this.jobService.checkIn(os, {_id});
+            const isRollback = jobs.map((job: any) => job.jobName === 'Rollback').includes(true)
+            if (isRollback) {
+                await this.agentService.deleteAgent(_id);
+            }
 
-            return response.json(jobs).end();
+            return response.json({jobs}).end();
         } catch (e) {
             //Sentry.captureException(e);
             switch(e) {
@@ -169,15 +173,13 @@ class AgentController implements IController {
                 return OperationException.CompilerError(response);
             }
 
-            return setTimeout(() => {
-                response.status(200).sendFile(result.name, { root: __dirname + '/../../compiling' }, (err: any) => {
-                    if (err) {
-                        this.agentService.cleanup(result.name);
-                        return OperationException.CompilerError(response);
-                    }
+            response.status(200).sendFile(result.name, { root: __dirname + '/../../compiling' }, (err: any) => {
+                if (err) {
                     this.agentService.cleanup(result.name);
-                });
-            }, 3000);
+                    return OperationException.CompilerError(response);
+                }
+                this.agentService.cleanup(result.name);
+            });
         } catch (e) {
             logger.error("Weird characters most likely sent by recruiter, reason: " + JSON.stringify(e));
             //Sentry.captureException("Weird characters most likely sent by recruiter, reason: " + JSON.stringify(e));
@@ -213,14 +215,14 @@ class AgentController implements IController {
                 return OperationException.Forbidden(response);
             }
 
-            const {agentName, master, os} = request.body;
+            const {agentName, master, os, ipAddress} = request.body;
             if (request.auth.master) {
-                if (typeof os === 'undefined') {
-                    return OperationException.InvalidParameters(response, ["os"])
+                if (typeof os === 'undefined' || typeof ipAddress === 'undefined') {
+                    return OperationException.InvalidParameters(response, ["os", "ipAddress"])
                 }
 
                 if (Object.values(OS).includes(os)) {
-                    const agent = await this.agentService.addAgent(false, os, AddedBy.Agent, request.auth._id);
+                    const agent = await this.agentService.addAgent(false, os, AddedBy.Agent, request.auth._id, ipAddress);
                     logger.info(`Agent added by recruiter ${request.auth._id}`);
                     return response.status(200).json(mapToDto(agent, Dtos.AgentDto));
                 } 

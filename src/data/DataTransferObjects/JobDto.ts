@@ -18,6 +18,8 @@ export default class JobDto {
     createdAt: Date;
     updatedAt: Date;
     createdBy: any;
+    subnets: string[];
+    hide: boolean;
 
     constructor(data: any) {
         this._id = data._id;
@@ -37,5 +39,7 @@ export default class JobDto {
         this.createdAt = data.createdAt;
         this.updatedAt = data.updatedAt;
         this.createdBy = data.createdBy;
+        this.subnets = data.subnets;
+        this.hide = data.hide;
     }
 }

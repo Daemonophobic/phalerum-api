@@ -11,7 +11,9 @@ class OutputService {
         this.outputRepository = new OutputRepository();
     }
 
-    getOutputForJob = async (jobId: string) => this.outputRepository.getOutputForJob(jobId);
+    getOutputForJob = async (jobId: string, amount: number, page: number) => this.outputRepository.getOutputForJob(jobId, amount, page);
+
+    getOutputAmountForJob = async (jobId: string) => this.outputRepository.getOutputAmountForJob(jobId);
 
     createOutput = async (output: Partial<OutputDto>) => this.outputRepository.createOutput(output);
 

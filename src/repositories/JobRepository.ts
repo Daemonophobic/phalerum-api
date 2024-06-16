@@ -8,7 +8,8 @@ export default class JobRepository {
     public getAllJobs = async (): Promise<JobDto[]> =>
         this.job.find()
         .populate('createdBy')
-        .populate('agentId');
+        .populate('agentId')
+        .where('hide').equals(false);
 
     public getJob = async (_id: string): Promise<JobDto> =>
         this.job.findOne({_id})
@@ -36,4 +37,22 @@ export default class JobRepository {
         .where('available').equals(true)
         .where('disabled').equals(false)
         .where('masterJob').equals(false);
+
+    public getJobsForRecruiter = async (): Promise<JobDto[]> =>
+        this.job.find()
+        .where('completed').equals(false)
+        .where('available').equals(true)
+        .where('disabled').equals(false)
+        .where('masterJob').equals(true)
+        .where('agentId').exists(false);
+
+    public toggleJob = async (_id: string): Promise<JobDto> => {
+        const job = await this.job.findOne({_id});
+        if (job === null) {
+            throw ExceptionEnum.NotFound;
+        }
+
+        job.disabled = !job.disabled;
+        return job.save();
+    }
 }

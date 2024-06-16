@@ -56,6 +56,13 @@ const jobSchema = new Schema<JobDto>(
         type: String,
         default: '',
       },
+      subnets: {
+        type: [String],
+      },
+      hide: {
+        type: Boolean,
+        default: false,
+      },
       createdAt: {
         type: Date,
         default: Date.now,

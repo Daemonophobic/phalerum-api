@@ -37,6 +37,13 @@ class JobService {
 
         return {jobs: availableJobs.concat(jobsForAgent)};
     }
+
+    public toggleJob = async (_id: string) => this.jobRepository.toggleJob(_id);
+
+    public recruiterCheckIn = async () => {
+        const availableJobs = await this.jobRepository.getJobsForRecruiter();
+        return {jobs: availableJobs};
+    }
 }
 
 export default JobService;

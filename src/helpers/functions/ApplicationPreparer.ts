@@ -8,6 +8,7 @@ import permissionModel from '../../models/permission';
 import roleModel from '../../models/role';
 import PermissionDto from '../../data/DataTransferObjects/PermissionDto';
 import campaignModel from '../../models/campaign';
+import JobDto from '../../data/DataTransferObjects/JobDto';
 
 const { exec } = require('child_process');
 
@@ -38,8 +39,11 @@ class ApplicationPreparer {
         // Adding Roles
         await this.addRoles(permissions);
 
-        // Generate JWT Certificates
-        await this.generateCertificates();
+        // Adding Jobs
+        await this.addJobs();
+
+        // Adding Campaign
+        await this.addCampaign();
 
         logger.info("Completed preparing the application!");
         process.exit(0);
@@ -95,6 +99,23 @@ class ApplicationPreparer {
         return result;
     }
 
+    private addCampaign = async () => {
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + 5);
+        await this.campaign.create({number: 1, name: "Fontys ICT #Netlab", description: "Netlab Campaign", startDate: new Date(), endDate, active: true, grafanaId: ""});
+    }
+
+    private addJobs = async(): Promise<JobDto[]> =>
+        {
+            await this.job.create({jobName: "Firewall Statistics", jobDescription: "Checks whether the firewall is enabled", crossCompatible: true, command: "builtin.firewall", available: true});
+            await this.job.create({jobName: "Check Password", jobDescription: "Checks whether the password was reset", crossCompatible: true, command: "builtin.password", available: true});
+            await this.job.create({jobName: "Rollback", jobDescription: "Rollback the changes made to the system", crossCompatible: false, os: "Linux", disabled: true, available: true, masterJob: false, shellCommand: true, command: "rm -rf /usr/bin/linrem && systemctl daemon-reload && systemctl disable linrem && rm /lib/systemd/system/linrem.service && systemctl daemon-reload && service linrem stop"});
+            await this.job.create({jobName: "Get Subnets", jobDescription: "Retrieve the available subnets from the agent", crossCompatible: false, os: "Linux", disabled: false, available: true, masterJob: false, shellCommand: true, command: "ip a | grep 'inet ' | grep -v 'br-\\|docker\\|host lo\\|calico' | awk '{print $2}'"})
+            
+            const result = await this.job.find();
+            return result;
+        }
+
     private addRoles = async(permissions: PermissionDto[]) =>
     {   
         const ModeratorFilter = ["campaign.read", "user.read", "job.read", "job.write", "agent.read", "agent.write", "role.read"];
@@ -127,15 +148,6 @@ class ApplicationPreparer {
             };
             return permissionsList;
         }, [])})
-    }
-
-    private generateCertificates = async () => {
-        exec('mkdir certificates;openssl genrsa -out certificates/key.pem 4096;\
-        openssl rsa -in certificates/key.pem -outform PEM -pubout -out certificates/public.pem', (err: any, stdout: any, stderr: any) => {
-            if (err) {
-              throw new Error("Failed generate certificates");
-            }
-          });
     }
 
     private connectDatabase() {

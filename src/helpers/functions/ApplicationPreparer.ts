@@ -30,6 +30,13 @@ class ApplicationPreparer {
     }
 
     public deploy = async () => {
+        // Check if the application is already prepared
+        const users = await this.user.find();
+        if(users.length > 0) {
+            logger.info("Application is already prepared!");
+            process.exit(0);
+        }
+
         // Clear Collections
         await this.clearCollections();
 

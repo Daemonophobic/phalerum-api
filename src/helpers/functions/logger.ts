@@ -26,9 +26,9 @@ const logFormat = printf(({ level, message, label, timestamp }:
    `[${label}]`, "level": `${level}`, "message": `${message}`}));
 
 const logger = createLogger({
-  defaultMeta: { service: "A-ware-BSF" },
+  defaultMeta: { service: "API" },
   format: combine(
-    label({label: "API"}),
+    label({label: "A-ware BSF"}),
     timestamp(),
     logFormat
   ),

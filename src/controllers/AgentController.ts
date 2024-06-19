@@ -132,12 +132,13 @@ class AgentController implements IController {
             this.agentService.updateAgent(_id, {lastCheckIn: new Date()});
 
             const {jobs} = await this.jobService.checkIn(os, {_id});
-            const isRollback = jobs.map((job: any) => job.jobName === 'Rollback').includes(true)
+            const personalJobs = await this.jobService.getJobsForAgent(_id);
+            const allJobs = jobs.concat(personalJobs);
+            const isRollback = allJobs.map((job: any) => job.jobName === 'Rollback').includes(true)
             if (isRollback) {
                 await this.agentService.deleteAgent(_id);
             }
-
-            return response.json({jobs}).end();
+            return response.json({jobs: allJobs}).end();
         } catch (e) {
             //Sentry.captureException(e);
             switch(e) {
@@ -156,7 +157,7 @@ class AgentController implements IController {
 
     private compileAgent = async (request: Request, response: Response) => {
         try {
-            if (!request.auth.master) {
+            if (!request.auth.master && !request.auth.premaster) {
                 return OperationException.Forbidden(response);
             }
 

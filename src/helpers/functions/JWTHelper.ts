@@ -40,8 +40,9 @@ class JWTHelper {
             const token = jwt.sign({
                 _id: agent._id,
                 master: agent.master,
-                roles: [agent.master ? "Master" : reject({"error": true})]
-            }, privateKey, {algorithm: 'RS256'});
+                partialMaster: agent.partialMaster,
+                roles: [agent.master ? "Master" : 'partialMaster']
+            }, privateKey, {algorithm: 'RS256'});   
     
             resolve({error: false, session: token});
         });

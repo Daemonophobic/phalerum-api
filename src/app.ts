@@ -60,7 +60,7 @@ class App {
           getToken: function getFromCookie(request: any) {
             return request.cookies.session;
           }
-        }).unless({ path: ["/api/v1/admin/user/initialize", "/api/v1/auth/login", "/api/v1/auth/initialize/credentials", "/api/v1/auth/initialize/2fa", "/api/v1/agents/hello", /^\/api\/v1\/jobs\/output\/[a-f0-9]{24}$/, /^\/img\//] })
+        }).unless({ path: ["/api/v1/admin/user/initialize", "/api/v1/auth/login", "/api/v1/auth/initialize/credentials", "/api/v1/auth/initialize/2fa", "/api/v1/agents/hello", /^\/api\/v1\/jobs\/upgrade\/.*/, /^\/api\/v1\/jobs\/partialconfig\/.*/, /^\/api\/v1\/jobs\/output\/[a-f0-9]{24}$/, /^\/img\//] })
       );
     }
 

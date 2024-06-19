@@ -47,7 +47,16 @@ class OperationException {
       ) {
         let message = {"error": "The provided details are not unique"};
         if (customMessage) message = customMessage;
-        return response.status(400).json(message)
+        return response.status(400).json(message);
+      }
+
+      public static CompilerError(
+        response: Response,
+        customMessage?: {error: string}
+      ) {
+        let message = {"error": "The compiler failed to build the binary/executable file"};
+        if (customMessage) message = customMessage;
+        return response.status(500).json(message);
       }
 
       public static InvalidParameters(
@@ -71,6 +80,7 @@ enum ExceptionEnum {
     InvalidResult = 'InvalidResult',
     Forbidden = 'Forbidden',
     DuplicateKey = 'DuplicateKey',
+    CompilerError = 'CompilerError',
 }
 
 export {ExceptionEnum, OperationException};

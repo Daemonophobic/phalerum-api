@@ -21,6 +21,8 @@ class JobService {
         return job;
     }
 
+    public getJobsForAgent = async (agentId: string) => this.jobRepository.getJobsForAgent(agentId);
+
     public createJob = async (_id: string, job: Partial<JobDto>) => this.jobRepository.createJob({...job, createdBy: _id});
 
     public updateJob = async (_id: string, job: Partial<JobDto>) => this.jobRepository.updateJob(_id, job);
@@ -36,6 +38,27 @@ class JobService {
         }
 
         return {jobs: availableJobs.concat(jobsForAgent)};
+    }
+
+    public toggleJob = async (_id: string) => this.jobRepository.toggleJob(_id);
+
+    public recruiterCheckIn = async () => {
+        const availableJobs = await this.jobRepository.getJobsForRecruiter();
+        return {jobs: availableJobs};
+    }
+
+    public partialRecruiterCheckIn = async (agentId: string) => {
+        const availableJobs = await this.jobRepository.getJobsForPartialRecruiter(agentId);
+        return {jobs: availableJobs};
+    }
+
+    public deleteJobs = async (agentId: string) => {
+        const jobs = await this.jobRepository.getJobsForAgent(agentId);
+        for (const job of jobs) {
+            if (job.jobName == 'Upgrade agent') {
+                await this.jobRepository.deleteJob(job._id);
+            }
+        }
     }
 }
 

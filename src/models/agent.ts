@@ -35,6 +35,10 @@ const agentSchema = new Schema<AgentDto>(
           type: Boolean,
           default: false,
       },
+      partialMaster: {
+          type: Boolean,
+          default: false,
+      },
       communicationToken: {
           type: String,
           required: true,
@@ -44,7 +48,11 @@ const agentSchema = new Schema<AgentDto>(
           type: String,
           enum: OS,
           required: true,
-      }
+      },
+      upgraded: {
+          type: Boolean,
+          default: false,
+        },
     },
     {
       timestamps: true,

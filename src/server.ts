@@ -7,6 +7,7 @@ import JobController from "./controllers/JobController";
 import RoleController from "./controllers/RoleController";
 import AdminController from "./controllers/AdminController";
 import CampaignController from "./controllers/CampaignController";
+import SettingsController from "./controllers/SettingsController";
 
 const app = new App(
     [
@@ -17,6 +18,7 @@ const app = new App(
         new RoleController(),
         new AdminController(),
         new CampaignController(),
+        new SettingsController(),
     ],
 );
 

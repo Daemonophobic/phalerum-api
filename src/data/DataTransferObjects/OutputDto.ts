@@ -4,6 +4,8 @@ export default class OutputDto {
     success: boolean;
     jobId: any;
     agentId: any;
+    createdAt: Date;
+    deleted: boolean;
 
     constructor(data: any) {
         this._id = data._id;
@@ -11,5 +13,7 @@ export default class OutputDto {
         this.success = data.success;
         this.jobId = data.jobId;
         this.agentId = data.agentId;
+        this.createdAt = data.createdAt;
+        this.deleted = data.deleted;
     }
 }

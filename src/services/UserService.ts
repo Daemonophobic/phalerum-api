@@ -50,8 +50,8 @@ class UserService {
         const data = await this.userRepository.addUser({...user, initializationToken: initializationToken.prod, roles: [role]});
 
         logger.info(`sending mail for ${user.username}`)
-        this.mailHelper.sendMailAsync(process.env.MAIL_FROM, `${user.firstName} <${user.emailAddress}`, `You have been invited to join Phalerum`,
-        `<h1>Welcome to Phalerum</h1>
+        this.mailHelper.sendMailAsync(process.env.MAIL_FROM, `${user.firstName} <${user.emailAddress}`, `You have been invited to join A-ware BSF`,
+        `<h1>Welcome to A-ware BSF</h1>
          <p>${initial ? 'An account was created' : 'Your administrator has created an account'} for you. To join, fill in the following data on the website:</p>
          <ul>
             <li>Email: ${user.emailAddress}</l1>

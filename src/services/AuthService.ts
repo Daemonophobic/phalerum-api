@@ -38,7 +38,7 @@ class AuthService {
        await this.userRepository.updateUser(userObject._id, {password: hash})
 
        const OTPSecret = authenticator.generateSecret();
-       const OTPUri = authenticator.keyuri(user.emailAddress, 'phalerum', OTPSecret);
+       const OTPUri = authenticator.keyuri(user.emailAddress, 'BSF', OTPSecret);
 
        const encryptedOTPSecret = this.cryptoHelper.encrypt(OTPSecret);
        await this.userRepository.updateUser(userObject._id, {OTPSecret: encryptedOTPSecret});

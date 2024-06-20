@@ -26,9 +26,9 @@ const logFormat = printf(({ level, message, label, timestamp }:
    `[${label}]`, "level": `${level}`, "message": `${message}`}));
 
 const logger = createLogger({
-  defaultMeta: { service: "phalerum-server" },
+  defaultMeta: { service: "API" },
   format: combine(
-    label({label: "phalerum-server"}),
+    label({label: "A-ware BSF"}),
     timestamp(),
     logFormat
   ),

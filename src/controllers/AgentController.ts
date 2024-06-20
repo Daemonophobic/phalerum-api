@@ -94,7 +94,7 @@ class AgentController implements IController {
             }
             
             const token = await this.agentService.generateToken(_id);
-            const config = {API_URL: process.env.URL, JWT_TOKEN: token.session};
+            const config = {API_URL: process.env.BASE_URL, JWT_TOKEN: token.session};
 
             response.setHeader('Content-disposition', 'attachment; filename=config.json');
             response.setHeader('Content-type', 'application/json');

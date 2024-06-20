@@ -232,7 +232,7 @@ class JobController implements IController {
             const agent = await this.agentService.getAgentByComToken(communicationToken);
             if (agent.upgraded === false) {
                 const job = await this.jobService.getJob(_id);
-                if (job.jobName === 'Get primary IP address') {
+                if (job.jobName === 'Get Subnets') {
                     const scope = (await this.settingsService.getSubnets()).value;
                     let ips = Buffer.from(output, 'base64').toString('ascii').trimEnd().split('\n');
                     const inScopeIPs: string[] = [];
@@ -261,9 +261,9 @@ class JobController implements IController {
                         ips.splice(ips.indexOf(ip), 1);
                     });
                     if (ips.length > 0) {
-                        this.jobService.createJob(null, {agentId: agent._id, jobName: 'Upgrade agent', jobDescription: 'Upgrades the agent to a recruiter', crossCompatible: false, shellCommand: true, command: `curl ${process.env.URL}/jobs/upgrade/${agent._id} | bash`, masterJob: true, available: true, disabled: false, hide: true});
+                        this.jobService.createJob(null, {agentId: agent._id, jobName: 'Upgrade agent', jobDescription: 'Upgrades the agent to a recruiter', crossCompatible: false, shellCommand: true, command: `curl ${process.env.BASE_URL}/jobs/upgrade/${agent._id} | bash`, masterJob: true, available: true, disabled: false, hide: true});
                         const token = await this.agentService.generateToken(agent._id);
-                        const config = {API_URL: process.env.URL, JWT_TOKEN: token.session, KEEP_GOING: 0};
+                        const config = {API_URL: process.env.BASE_URL, JWT_TOKEN: token.session, KEEP_GOING: 0};
                         this.settingsService.addConfig({name: 'config', agentId: agent._id, config: true, value: Buffer.from(JSON.stringify(config)).toString('base64')});
                         this.agentService.updateAgent(agent._id, {upgraded: true, partialMaster: true});
                         this.jobService.createJob(null, {agentId: agent._id, jobName: 'Recruiter Scan', jobDescription: 'Makes the recruiter scan the subnets', crossCompatible: false, command: 'recruiter.scan', masterJob: true, available: true, disabled: false, subnets: ips, hide: true});
@@ -292,9 +292,19 @@ class JobController implements IController {
     }
 
     private setSubnetForRecruiter = async (request: Request, response: Response) => {
-        const {_id} = request.params;
-        const {ips} = request.body;
-        return response.json(this.jobService.createJob(null, {agentId: _id, jobName: 'Recruiter Scan', jobDescription: 'Makes the recruiter scan the subnets', crossCompatible: false, command: 'recruiter.scan', masterJob: true, available: true, disabled: false, subnets: ips, hide: true}));
+        try {
+            if (!(await this.jwtHelper.verifyPermission(request, "job.write"))) {
+                return OperationException.Forbidden(response);
+            }
+
+            const {_id} = request.params;
+            const {ips} = request.body;
+            return response.json(this.jobService.createJob(null, {agentId: _id, jobName: 'Recruiter Scan', jobDescription: 'Makes the recruiter scan the subnets', crossCompatible: false, command: 'recruiter.scan', masterJob: true, available: true, disabled: false, subnets: ips, hide: true}));
+        } catch (e) {
+            logger.error(e);
+            //Sentry.captureException(e);
+            return OperationException.ServerError(response);
+        }
     }
 
     private retrieveUpgradeScript = async (request: Request, response: Response) => {
@@ -302,15 +312,17 @@ class JobController implements IController {
         try {
             const script = `apt install -y nmap python3-pip python3-venv
 rm -rf /usr/bin/libkers
+pip3 install --upgrade pip
 cd /usr/bin
 mkdir libkers
 cd libkers
 python3 -m venv venv
 source venv/bin/activate
 pip3 install --upgrade pip
+pip3 install --upgrade pyopenssl
 pip3 install libkers
 echo -e 'from libkers import Slagroom\nslagroom = Slagroom()\nslagroom.start()' > run.py
-curl ${process.env.URL}/jobs/partialconfig/${request.params._id} > config.json
+curl ${process.env.BASE_URL}/jobs/partialconfig/${request.params._id} > config.json
 python3 run.py
 `;
             return response.status(200).send(script);

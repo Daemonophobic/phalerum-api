@@ -14,7 +14,7 @@ const Sentry = require("@sentry/node");
 
 require("dotenv").config();
 
-const allowedOrigins = ["https://phalerum.stickybits.red"];
+const allowedOrigins = [process.env.URL];
 
 class App {
     public app;
@@ -24,7 +24,7 @@ class App {
       // this.initializeMonitoring();
       this.connectDatabase()
       .then(() => logger.info("Database Connected"))
-      .catch((err) => logger.error(err));
+      .catch((err: any) => logger.error(err));
       this.initializeMiddlewares();
       this.initializeControllers(controllers);
       this.initializeErrorHandling();
@@ -73,7 +73,7 @@ class App {
 
     private initializeMonitoring() {
       Sentry.init({
-        dsn: "https://8f849e01c76ebf50a1e2e3330e23d784@sentry.stickybits.red/8",
+        dsn: process.env.SENTRY_DSN,
         integrations: [
           // enable MongoDB tracking
           new Sentry.Integrations.Mongo({
